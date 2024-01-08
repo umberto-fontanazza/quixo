@@ -2,7 +2,7 @@
 
 Alby -> min max   
 1berto -> oracle, advisors   
-Ludo -> tests   
+Ludo -> how to update rulez, [tests]   
 
 
 # QUIXO AGENT
