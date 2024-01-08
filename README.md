@@ -1,3 +1,10 @@
+# WHO DOES WHAT
+
+Alby -> min max   
+1berto -> oracle, advisors   
+Ludo -> tests   
+
+
 # QUIXO AGENT
 
 oracle asks the advisors for scores   
