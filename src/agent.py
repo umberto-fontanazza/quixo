@@ -45,36 +45,30 @@ class DelphiPlayer(Player):
         self.episode: list[Board] = [Board]   
         self.depth: int = tree_depth 
 
-    # TODO: implement pruning
-    def __max(self, board: Board, idx: int, beta: float = float("inf"), curr_depth: int = 0) -> float:
+    def __max(self, board: Board, idx: int, beta: float = 100.0, curr_depth: int = 0) -> float:
         if curr_depth >= self.depth:
             return self.delphi.evaluate(board)
-        alpha = -float("inf") #smallest positive value in py
-        future_boards: list[np.ndarray] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
-        #evaluated: list[float] = [self.__min(b, (idx + 1)%2, curr_depth + 1) for b in future_boards] #to be removed
+        alpha = 0.0                                                 # smallest oracle value
+        future_boards: list[Board] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         evaluated = []
         for b in future_boards:
-            tmp = self.__min(b, (idx + 1)%2, alpha, curr_depth + 1)#calculate the smallest value of a board
+            tmp = self.__min(b, (idx + 1)%2, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
-            alpha = tmp if tmp > alpha else alpha #update alpha with the biggest value found so far
-            evaluated.append(tmp) # add to the list of evaluations
-        return max(evaluated)
+            alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
+        return alpha
 
-    def __min(self, board: Board, idx: int, alpha: float = -float("inf"), curr_depth: int = 1) -> float:
-        if curr_depth >= self.depth:                                                        # is this needed?
+    def __min(self, board: Board, idx: int, alpha: float = 0.0, curr_depth: int = 1) -> float:
+        if curr_depth >= self.depth:                                                        
             return self.delphi.evaluate(board)
-        beta = float("inf")
-        future_boards: list[np.ndarray] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
-        #evaluated: list[float] = [self.__max(b, (idx + 1)%2, curr_depth + 1) for b in future_boards]
-        evaluated = []
+        beta = 100.0                                                # largest oracle value
+        future_boards: list[Board] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         for b in future_boards:
             tmp = self.__max(b, (idx + 1)%2, beta, curr_depth + 1)
-            if tmp < alpha: #if we find a value smaller than alpha we stop and we return this value
+            if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
-            beta = tmp if tmp < beta else beta #update beta 
-            evaluated.append(tmp)
-        return min(evaluated)
+            beta = tmp if tmp < beta else beta                      # update beta 
+        return beta
     
     def __apply_move(self, board: Board, move: tuple[Position, Move], idx: int) -> Board:
         """gives out a copy of the board after the move is applied
@@ -127,16 +121,15 @@ class DelphiPlayer(Player):
             board[(board.shape[0] - 1, from_pos[1])] = piece        
         return board
 
-    # TODO: implement pruning
     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
         idx: int = game.get_current_player()
         moves: list[tuple[Position, Move]] = [p for p in getPossibleMoves(game.get_board(), idx)]
         future_boards: list[Board] = [self.__apply_move(game.get_board(), p, idx) for p in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (idx + 1)%2), p) for b, p in zip(future_boards, moves)]
-        chosen: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
-        self.episode.append(self.__apply_move(chosen[0], chosen[2], idx))      
-        print(chosen)
-        return chosen[2]
+        chosen_move_: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
+        self.episode.append(self.__apply_move(chosen_move_[0], chosen_move_[2], idx))      
+        print(chosen_move_)
+        return chosen_move_[2]
     
     def feedback(self, outcome: Outcome) -> None:
         """at the end of a game, gives feedback to the oracle"""
