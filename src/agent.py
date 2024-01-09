@@ -47,7 +47,7 @@ class DelphiPlayer(Player):
 
     def __max(self, board: Board, idx: int, beta: float = 100.0, curr_depth: int = 0) -> float:
         if curr_depth >= self.depth:
-            return self.delphi.evaluate(board)
+            return self.delphi.advantage(board)
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         for b in future_boards:
@@ -59,7 +59,7 @@ class DelphiPlayer(Player):
 
     def __min(self, board: Board, idx: int, alpha: float = 0.0, curr_depth: int = 1) -> float:
         if curr_depth >= self.depth:                                                        
-            return self.delphi.evaluate(board)
+            return self.delphi.advantage(board)
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         for b in future_boards:
@@ -124,11 +124,8 @@ class DelphiPlayer(Player):
         moves: list[tuple[Position, Move]] = getPossibleMoves(game.get_board(), idx)
         future_boards: list[Board] = [self._apply_move(game.get_board(), m, idx) for m in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (idx + 1)%2), p) for b, p in zip(future_boards, moves)]
-        for e in evaluated:
-            print(e) 
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
         self.episode.append(chosen_move[0])      
-        print(chosen_move)
         return chosen_move[2]
     
     def feedback(self, outcome: Outcome) -> None:
