@@ -48,18 +48,34 @@ class DelphiPlayer(Player):
         self.depth = tree_depth if tree_depth % 2 == 0 else tree_depth + 1                  # should it be an even number? 
 
     # TODO: implement pruning
-    def __max(self, board: np.ndarray, idx: int, curr_depth: int = 0) -> float:
+    def __max(self, board: np.ndarray, idx: int, beta: float = float("inf"), curr_depth: int = 0) -> float:
         if curr_depth >= self.depth:
             return self.delphi.evaluate(board)
+        alpha = -float("inf") #smallest positive value in py
         future_boards: list[np.ndarray] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
-        evaluated: list[float] = [self.__min(b, (idx + 1)%2, curr_depth + 1) for b in future_boards]
+        #evaluated: list[float] = [self.__min(b, (idx + 1)%2, curr_depth + 1) for b in future_boards] #to be removed
+        evaluated = []
+        for b in future_boards:
+            tmp = self.__min(b, (idx + 1)%2, alpha, curr_depth + 1)#calculate the smallest value of a board
+            if tmp > beta:
+                return tmp
+            alpha = tmp if tmp > alpha else alpha #update alpha with the biggest value found so far
+            evaluated.append(tmp) # add to the list of evaluations
         return max(evaluated)
 
-    def __min(self, board: np.ndarray, idx: int, curr_depth: int = 1) -> float:
+    def __min(self, board: np.ndarray, idx: int, alpha: float = -float("inf"), curr_depth: int = 1) -> float:
         if curr_depth >= self.depth:                                                        # is this needed?
             return self.delphi.evaluate(board)
+        beta = float("inf")
         future_boards: list[np.ndarray] = [self.__apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
-        evaluated: list[float] = [self.__max(b, (idx + 1)%2, curr_depth + 1) for b in future_boards]
+        #evaluated: list[float] = [self.__max(b, (idx + 1)%2, curr_depth + 1) for b in future_boards]
+        evaluated = []
+        for b in future_boards:
+            tmp = self.__max(b, (idx + 1)%2, beta, curr_depth + 1)
+            if tmp < alpha: #if we find a value smaller than alpha we stop and we return this value
+                return tmp
+            beta = tmp if tmp < beta else beta #update beta 
+            evaluated.append(tmp)
         return min(evaluated)
     
     def __apply_move(self, board: np.ndarray, move: tuple[Position, Move], idx: int) -> np.ndarray:
