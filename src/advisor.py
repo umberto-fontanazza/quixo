@@ -1,3 +1,5 @@
+from board import Board
+
 class Advisor():
 
     # TODO: type hint board
