@@ -5,6 +5,7 @@ import numpy as np
 
 Board = NDArray
 Position = tuple[int, int]
+Player = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
 
 def random_board() -> Board:
