@@ -1,4 +1,4 @@
-from src.agent import DelphiPlayer, getPossibleMoves
+from src.agent import DelphiPlayer, get_possible_moves
 from src.board import random_board, Board
 import numpy as np
 from itertools import product
@@ -14,16 +14,16 @@ test_boards = [random_board() for _ in range(10)]
 def test_getPossibleMoves():
     # random tests
     for board in test_boards:
-        m1, m2 = getPossibleMoves(board, 0), getPossibleMoves(board, 1)
+        m1, m2 = get_possible_moves(board, 0), get_possible_moves(board, 1)
         assert len(m1) + len(m2) > 0
     # test board with no valid moves    
     board = np.array([1] * 25).reshape(5,5)
-    assert len(getPossibleMoves(board, 0)) == 0
+    assert len(get_possible_moves(board, 0)) == 0
     #test number of valid moves
-    assert len(getPossibleMoves(board, 1)) == (12*3 + 4*2)
+    assert len(get_possible_moves(board, 1)) == (12*3 + 4*2)
     #test should give only 2 doable moves
     board[0, 0] = 0
-    assert len(getPossibleMoves(board, 0)) == 2
+    assert len(get_possible_moves(board, 0)) == 2
 
 
 def test_apply_move():
@@ -64,5 +64,5 @@ def test_make_move():
         assert result[0][0] >= 0 and result[0][0] <= 4
         assert result[0][1] >= 0 and result[0][1] <= 4
         assert result[1] in [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
-        assert result in getPossibleMoves(Game().get_board(), 1)
+        assert result in get_possible_moves(Game().get_board(), 1)
       

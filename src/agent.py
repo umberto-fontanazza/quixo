@@ -10,7 +10,7 @@ from quixo.lib.game import Game, Move, Player
 SLIDES = [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
 BORDER_POSITIONS = [(x, y) for x in range(5) for y in [0, 4]] + [(x, y) for x in [0, 4] for y in range(1, 4)]
 
-def getPossibleMoves(board: Board, idx: int) -> list[tuple[Position, Move]]:
+def get_possible_moves(board: Board, idx: int) -> list[tuple[Position, Move]]:
     """returns all the possible moves given a Game object
         that is, a list of tuples (Position, Move)"""
     possible = []
@@ -50,7 +50,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.depth:
             return self.delphi.advantage(board, idx)
         alpha = 0.0                                                 # smallest oracle value
-        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
+        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in get_possible_moves(board, idx)]
         for b in future_boards:
             tmp = self.__min(b, (idx + 1)%2, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
@@ -62,7 +62,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.depth:                                                        
             return self.delphi.advantage(board, idx)
         beta = 100.0                                                # largest oracle value
-        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
+        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in get_possible_moves(board, idx)]
         for b in future_boards:
             tmp = self.__max(b, (idx + 1)%2, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
@@ -122,7 +122,7 @@ class DelphiPlayer(Player):
 
     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
         idx: int = game.get_current_player()
-        moves: list[tuple[Position, Move]] = getPossibleMoves(game.get_board(), idx)
+        moves: list[tuple[Position, Move]] = get_possible_moves(game.get_board(), idx)
         future_boards: list[Board] = [self._apply_move(game.get_board(), m, idx) for m in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (idx + 1)%2), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
@@ -150,7 +150,7 @@ if __name__ == '__main__':
             b[s] = 0
         b[1,0] = 1    
         print(b)
-        print(len(getPossibleMoves(b, 1)))
+        print(len(get_possible_moves(b, 1)))
 
     if False:
         b = random_board()
@@ -160,7 +160,7 @@ if __name__ == '__main__':
 
         import numpy
         b = numpy.array([0] + [1] * 24).reshape((5,5))
-        p = getPossibleMoves(b, 0)
+        p = get_possible_moves(b, 0)
         #print(p)
 
         b = numpy.array([1] * 24 + [0]).reshape((5,5))
@@ -175,13 +175,17 @@ if __name__ == '__main__':
         
 
         b = numpy.array([1] * 24 + [0]).reshape((5,5))
-        p = getPossibleMoves(b, 0)
+        p = get_possible_moves(b, 0)
         #print(p)
         
     if False:
         print(dp.make_move(g))    
 
     if True:
-        g.play(dp, dp)
-        g.print()
-        print(g.check_winner())
+        adv = DelphiPlayer()
+        for _ in range(2):
+            g.play(dp, adv)
+            g.print()
+            winner = g.check_winner
+            print(winner)
+            #dp.feedback('Loss' if winner == 1 else 'Win')
