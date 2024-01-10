@@ -32,7 +32,25 @@ def line_majority(board: Board, player: Player) -> float:
     elif player == 'O' or player == 0:
         return o_major * 100 / (o_major + x_major)
 
+# TODO: to be implemented error
+def count_moves(board: Board) -> tuple[int, int]:
+    """Returns the count of all available moves for O and for X as a tuple.
+    A piece taken from the corner of the board accounts for 2 moves while a piece
+    from the side accounts for 3 moves."""
+
+    # return (o_moves_count, x_moves_count)
+    raise NotImplementedError()
+
+def available_moves_majority(board: Board, player: Player) -> float:
+    o_moves, x_moves = count_moves(board)
+    if player == 'X' or player == 1:
+        return x_moves * 100 / (x_moves + o_moves)
+    elif player == 'O' or player == 0:
+        return o_moves * 100 / (x_moves + o_moves)
+    raise ValueError(f'{player =} is not valid')
+
 Advisor = Callable[[Board, Player], float]
 ALL_ADVISORS: list[Advisor] = [
-    line_majority
+    line_majority,
+    # TODO: add available_moves_majority,
 ]
