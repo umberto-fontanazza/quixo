@@ -9,12 +9,28 @@ class Oracle():
         else:
             self.__weights = weights
 
-    def __adjust(self, board: Board, Outcome):
-        raise NotImplementedError()
+    @staticmethod
+    def __is_good_prediction(score: float, outcome: Outcome) -> bool:
+        if score >= 50 and outcome == 'Win':
+            return True
+        if score < 50 and outcome == 'Loss':
+            return True
+        return False
 
-    # TODO: to be implemented
-    def feedback(self, game_states: list[Board], outcome: Outcome) -> None:
-        raise NotImplementedError()
+    def __adjust_rule_weights(self, board: Board, player: Player, outcome: Outcome):
+        growth_factor = .1
+        shrink_factor = .1
+        rule_scores: list[float] = [rule(board, player) for rule in self.__rules]
+        rule_success = [self.__is_good_prediction(score, outcome) for score in rule_scores]
+        for success, weight in zip(rule_success, self.__weights):
+            if success:
+                weight += weight * growth_factor
+            else:
+                weight -= weight * shrink_factor
+
+    def feedback(self, board_states: list[Board], player: Player, outcome: Outcome) -> None:
+        for board in board_states:
+            self.__adjust_rule_weights(board, player, outcome)
 
     def advantage(self, board: Board, player: Player) -> float:
         advisor_advantages: list[float] = [rule(board, player) for rule in self.__rules]
