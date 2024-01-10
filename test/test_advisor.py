@@ -1,4 +1,4 @@
-from src.advisor import Advisor, ALL_ADVISORS, line_majority_count
+from src.advisor import Advisor, ALL_ADVISORS, line_majority_count, count_moves
 from src.board import Player, random_board
 from itertools import product
 from numpy import array
@@ -21,3 +21,6 @@ def test_advisor_result_type_and_range():
 
 def test_line_majority_count():
     assert line_majority_count(board_1) == (4, 6)
+
+def test_count_moves():
+    assert count_moves(board_1) == (38, 41)

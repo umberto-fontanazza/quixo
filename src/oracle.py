@@ -9,6 +9,9 @@ class Oracle():
         else:
             self.__weights = weights
 
+    def __adjust(self, board: Board, Outcome):
+        raise NotImplementedError()
+
     # TODO: to be implemented
     def feedback(self, game_states: list[Board], outcome: Outcome) -> None:
         raise NotImplementedError()
