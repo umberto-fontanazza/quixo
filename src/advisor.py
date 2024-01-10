@@ -37,9 +37,18 @@ def count_moves(board: Board) -> tuple[int, int]:
     """Returns the count of all available moves for O and for X as a tuple.
     A piece taken from the corner of the board accounts for 2 moves while a piece
     from the side accounts for 3 moves."""
-
-    # return (o_moves_count, x_moves_count)
-    raise NotImplementedError()
+    o_moves_count, x_moves_count = 0
+    for p in [(x, y) for x in range(5) for y in [0, 4]] + [(x, y) for x in [0, 4] for y in range(1, 4)]:
+        addend = 2 if p[0] in [0, 4] or p[1] in [0, 4] else 3
+        if board[p] == -1:
+            o_moves_count += addend
+            x_moves_count += addend   
+        elif board[p] == 1:
+            x_moves_count += addend
+        else:
+            o_moves_count += addend
+    return (o_moves_count, x_moves_count)
+    
 
 def available_moves_majority(board: Board, player: Player) -> float:
     o_moves, x_moves = count_moves(board)
