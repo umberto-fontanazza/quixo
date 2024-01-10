@@ -1,6 +1,7 @@
-from oracle import Oracle
+from src.oracle import Oracle
 from copy import deepcopy
-from board import Board, Position, Outcome
+from src.board import Board, Position, Outcome
+import numpy
 
 import sys                                              # Find a more elegant way for this (?)
 sys.path.append('../')
@@ -34,7 +35,7 @@ def getPossibleMoves(board: Board, idx: int) -> list[tuple[Position, Move]]:
             else:                                                           #other rows on right side
                 possible += [(p, Move.TOP), (p, Move.LEFT), (p, Move.BOTTOM)]     
     # i know, it is going to be evaluated again by game, but i think we could really save up some time
-    assert len(possible) > 0
+    numpy.random.shuffle(possible)
     return possible
 
 
@@ -47,7 +48,7 @@ class DelphiPlayer(Player):
 
     def __max(self, board: Board, idx: int, beta: float = 100.0, curr_depth: int = 0) -> float:
         if curr_depth >= self.depth:
-            return self.delphi.advantage(board)
+            return self.delphi.advantage(board, idx)
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         for b in future_boards:
@@ -59,7 +60,7 @@ class DelphiPlayer(Player):
 
     def __min(self, board: Board, idx: int, alpha: float = 0.0, curr_depth: int = 1) -> float:
         if curr_depth >= self.depth:                                                        
-            return self.delphi.advantage(board)
+            return self.delphi.advantage(board, idx)
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [self._apply_move(board, p, idx) for p in getPossibleMoves(board, idx)]
         for b in future_boards:
@@ -143,7 +144,7 @@ if __name__ == '__main__':
     g = Game()
 
     # informal tests
-    if False:
+    if True:
         b = g.get_board()
         for s in BORDER_POSITIONS:
             b[s] = 0
@@ -180,7 +181,7 @@ if __name__ == '__main__':
     if False:
         print(dp.make_move(g))    
 
-    if False:
+    if True:
         g.play(dp, dp)
         g.print()
         print(g.check_winner())
