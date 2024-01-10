@@ -9,6 +9,18 @@ board_1 = array([   [-1, -1, -1,  1, -1],
                     [-1,  1,  1,  0,  1],
                     [-1, -1, -1,  0, -1]])
 
+board_2 = array([   [-1,  0,  1,  1,  0],
+                    [ 0,  1,  1,  1,  1],
+                    [-1, -1, -1, -1,  1],
+                    [ 1, -1,  0,  1,  0],
+                    [-1,  1,  0,  0, -1]])
+
+board_3 = array([   [ 0,  1,  0,  0,  0],
+                    [ 1,  0,  0,  0,  1],
+                    [-1,  1,  0, -1, -1],
+                    [-1,  0, -1,  1, -1],
+                    [-1,  1,  1,  0, -1]])
+
 random_boards = [random_board() for _ in range(5)]
 
 def test_advisor_result_type_and_range():
@@ -21,6 +33,10 @@ def test_advisor_result_type_and_range():
 
 def test_line_majority_count():
     assert line_majority_count(board_1) == (4, 6)
+    assert line_majority_count(board_2) == (1, 5)
+    assert line_majority_count(board_3) == (6, 2)
 
 def test_count_moves():
     assert count_moves(board_1) == (38, 41)
+    assert count_moves(board_2) == (26, 27)
+    assert count_moves(board_3) == (29, 31)
