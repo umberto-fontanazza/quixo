@@ -3,9 +3,11 @@ from src.board import random_board, Board
 import numpy as np
 from itertools import product
 
-import sys                                              # Find a more elegant way for this (?)
-sys.path.append('../')
-from quixo.lib.game import Game, Move, Player
+"""The relative import should work fine with Pytest"""
+# import sys                                              # Find a more elegant way for this (?)
+# sys.path.append('../')
+# from quixo.lib.game import Game, Move, Player
+from lib.game import Game, Move, Player
 
 test_boards = [random_board() for _ in range(10)]
 
