@@ -32,7 +32,7 @@ def line_majority(board: Board, player: Player) -> float:
     elif player == 'O' or player == 0:
         return o_major * 100 / (o_major + x_major)
 
-# TODO: to be implemented error
+
 def count_moves(board: Board) -> tuple[int, int]:
     """Returns the count of all available moves for O and for X as a tuple.
     A piece taken from the corner of the board accounts for 2 moves while a piece
