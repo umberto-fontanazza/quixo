@@ -1,4 +1,4 @@
-from src.board import Board, Player, Outcome
+from src.board import Board, PlayerID, Outcome
 from src.advisor import Advisor, ALL_ADVISORS
 
 class Oracle():
@@ -17,7 +17,7 @@ class Oracle():
             return True
         return False
 
-    def __adjust_rule_weights(self, board: Board, player: Player, outcome: Outcome):
+    def __adjust_rule_weights(self, board: Board, player: PlayerID, outcome: Outcome):
         growth_factor = .1
         shrink_factor = .1
         rule_scores: list[float] = [rule(board, player) for rule in self.__rules]
@@ -28,11 +28,11 @@ class Oracle():
             else:
                 weight -= weight * shrink_factor
 
-    def feedback(self, board_states: list[Board], player: Player, outcome: Outcome) -> None:
+    def feedback(self, board_states: list[Board], player: PlayerID, outcome: Outcome) -> None:
         for board in board_states:
             self.__adjust_rule_weights(board, player, outcome)
 
-    def advantage(self, board: Board, player: Player) -> float:
+    def advantage(self, board: Board, player: PlayerID) -> float:
         advisor_advantages: list[float] = [rule(board, player) for rule in self.__rules]
         total_score = 0
         for i, rule_score in enumerate(advisor_advantages):

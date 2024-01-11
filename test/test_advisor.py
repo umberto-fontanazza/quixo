@@ -1,5 +1,5 @@
 from src.advisor import Advisor, ALL_ADVISORS, line_majority_count, count_moves
-from src.board import Player, random_board
+from src.board import PlayerID, random_board
 from itertools import product
 from numpy import array
 
@@ -25,7 +25,7 @@ random_boards = [random_board() for _ in range(5)]
 
 def test_advisor_result_type_and_range():
     for advisor, player, board in product(ALL_ADVISORS, [0,1], random_boards):
-        p: Player = 'X' if player else 'O'
+        p: PlayerID = 'X' if player else 'O'
         score = advisor(board, p)
         assert type(score) in [float, int]
         assert score >= 0

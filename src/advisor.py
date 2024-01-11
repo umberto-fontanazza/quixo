@@ -1,5 +1,5 @@
 from typing import Callable, Literal
-from src.board import Board, Player, change_symbols
+from src.board import Board, PlayerID, change_symbols
 from numpy import array, trace, flip
 
 # TODO: this should be a private method but it needs to be imported for testing in test_advisor
@@ -25,7 +25,7 @@ def line_majority_count(board: Board) -> tuple[int, int]:
     if antidiagonal_sum > 0: x_major_lines += 1
     return (o_major_lines, x_major_lines)
 
-def line_majority(board: Board, player: Player) -> float:
+def line_majority(board: Board, player: PlayerID) -> float:
     o_major, x_major = line_majority_count(board)
     if player == 'X' or player == 1:
         return x_major * 100 / (o_major + x_major)
@@ -50,7 +50,7 @@ def count_moves(board: Board) -> tuple[int, int]:
     return (o_moves_count, x_moves_count)
     
 
-def available_moves_majority(board: Board, player: Player) -> float:
+def available_moves_majority(board: Board, player: PlayerID) -> float:
     o_moves, x_moves = count_moves(board)
     if player == 'X' or player == 1:
         return x_moves * 100 / (x_moves + o_moves)
@@ -58,7 +58,7 @@ def available_moves_majority(board: Board, player: Player) -> float:
         return o_moves * 100 / (x_moves + o_moves)
     raise ValueError(f'{player =} is not valid')
 
-Advisor = Callable[[Board, Player], float]
+Advisor = Callable[[Board, PlayerID], float]
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
     # TODO: add available_moves_majority,
