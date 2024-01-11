@@ -86,5 +86,6 @@ def is_legal(p: tuple) -> bool:
 Advisor = Callable[[Board, PlayerID], float]
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
+    compact_board,
     # TODO: add available_moves_majority,
 ]

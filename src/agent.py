@@ -1,7 +1,7 @@
 from src.oracle import Oracle
 from src.board import Board, Position, Outcome, random_board
 from lib.game import Game, Move, Player
-from src.advisor import is_legal, compact_board # delate
+from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
 import numpy
 
