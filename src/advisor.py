@@ -58,6 +58,31 @@ def available_moves_majority(board: Board, player: PlayerID) -> float:
         return o_moves * 100 / (x_moves + o_moves)
     raise ValueError(f'{player =} is not valid')
 
+def compact_board(board: Board, player: PlayerID) -> float:
+    """counts the O close to others O and the X close to others X and returns a weighted difference"""
+    count_x = 0
+    count_o = 0
+    for p in [(x, y) for x in range(5) for y in range(5)]:
+        if board[p] == 1:
+            for p1 in [(p[0]-1,p[1]-1),(p[0]-1,p[1]),(p[0]-1,p[1]+1),(p[0]+1,p[1]-1),(p[0]+1,p[1]),(p[0]+1,p[1]+1),(p[0],p[1]-1),(p[0],p[1]+1)]:
+                if is_legal(p1):
+                    if board[p1] == 1:
+                        count_x = count_x + 1
+        elif board[p] == 0:
+            for p1 in [(p[0]-1,p[1]-1),(p[0]-1,p[1]),(p[0]-1,p[1]+1),(p[0]+1,p[1]-1),(p[0]+1,p[1]),(p[0]+1,p[1]+1),(p[0],p[1]-1),(p[0],p[1]+1)]:
+                if is_legal(p1):
+                    if board[p1] == 0:
+                        count_o  = count_o + 1
+    print(player)
+    if player == 'X' or player == 1:
+        return count_x * 100 / (count_x + count_o)
+    elif player == 'O' or player == 0:
+        return count_o * 100 / (count_x + count_o)
+
+def is_legal(p: tuple) -> bool:
+    """usefull func for compact_board"""
+    return 0 <= p[0] and p[0] < 5 and 0 <= p[1] and p[1] < 5
+
 Advisor = Callable[[Board, PlayerID], float]
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
