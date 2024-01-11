@@ -1,5 +1,5 @@
 from src.oracle import Oracle
-from src.board import Board, Position, Outcome,get_possible_moves, BORDER_POSITIONS,random_board
+from src.board import Board, Position, Outcome,get_possible_moves, BORDERS,random_board
 from lib.game import Game, Move, Player
 from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     # informal tests
     if False:
         b = g.get_board()
-        for s in BORDER_POSITIONS:
+        for s in BORDERS:
             b[s] = 0
         b[1,0] = 1
         print(b)
