@@ -13,7 +13,7 @@ class DelphiPlayer(Player):
         self.__depth_limit: int = tree_depth
         self.player_index = None
 
-    def __check_for_terminal_conditions(board: Board, current_player: Literal[0,1] ) -> int:
+    def __check_for_terminal_conditions(self, board: Board, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
             if no one won, returns -1"""
         winners = check_winner(board)

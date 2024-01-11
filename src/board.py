@@ -67,7 +67,7 @@ def count_moves(board: Board) -> tuple[int, int]:
             o_moves_count += slide_count
     return (o_moves_count, x_moves_count)
 
-def check_winner(board: Board) -> set[int]:
+def check_winner(board: Board) -> set[PlayerID]:
         '''Check the winner.
         Returns the player IDs that have a winning row, column, or diagonal, otherwise returns -1'''
         winners = []
