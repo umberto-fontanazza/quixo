@@ -28,5 +28,7 @@ class Position(tuple):
             return False
         return True
 
+# TODO: check this
+# before: CORNERS = [Position(x, y) for x, y in product((0, 4), (0, 4))]
 CORNERS = [Position(axis_0=x, axis_1=y) for x, y in product((0, 4), (0, 4))]
 BORDERS = [Position(axis_0=x, axis_1=y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(axis_0=x, axis_1=y) for x, y in product((0, 4), (1, 2, 3))]
