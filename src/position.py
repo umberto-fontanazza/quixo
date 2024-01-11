@@ -1,9 +1,9 @@
 from typing import Literal
-from dataclasses import dataclass
 from itertools import product
+from dataclasses import dataclass
 
 @dataclass(frozen=True)
-class Position(tuple):
+class Position():
     axis_0: Literal[0, 1, 2, 3, 4]
     axis_1: Literal[0, 1, 2, 3, 4]
 
@@ -28,7 +28,5 @@ class Position(tuple):
             return False
         return True
 
-# TODO: check this
-# before: CORNERS = [Position(x, y) for x, y in product((0, 4), (0, 4))]
-CORNERS = [Position(axis_0=x, axis_1=y) for x, y in product((0, 4), (0, 4))]
-BORDERS = [Position(axis_0=x, axis_1=y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(axis_0=x, axis_1=y) for x, y in product((0, 4), (1, 2, 3))]
+CORNERS = [Position(x, y) for x, y in product((0, 4), (0, 4))]
+BORDERS = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
