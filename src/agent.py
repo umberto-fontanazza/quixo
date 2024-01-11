@@ -8,12 +8,9 @@ from random import choice
 import numpy
 
 class DelphiPlayer(Player):
-    def __init__(self, oracle_weights: list[float] = [], tree_depth: int = 4) -> None:
+    def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
         super().__init__()
-        if len(oracle_weights) > 0:
-            self.__oracle = Oracle(weights=oracle_weights)
-        else:
-            self.__oracle = Oracle()
+        self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
         self.__depth_limit: int = tree_depth
         self.player_index = None
