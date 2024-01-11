@@ -1,6 +1,7 @@
 from src.oracle import Oracle
-from src.board import Board, Position, Outcome, get_possible_moves, BORDER_POSITIONS
+from src.board import Board, Position, Outcome,get_possible_moves, BORDER_POSITIONS,random_board
 from lib.game import Game, Move, Player
+from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
 import numpy
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     g = Game()
 
     # informal tests
-    if True:
+    if False:
         b = g.get_board()
         for s in BORDER_POSITIONS:
             b[s] = 0
@@ -126,7 +127,7 @@ if __name__ == '__main__':
     if False:
         print(dp.make_move(g))
 
-    if True:
+    if False: #to do change to true
         adv = DelphiPlayer()
         for _ in range(2):
             g.play(dp, adv)
@@ -134,3 +135,8 @@ if __name__ == '__main__':
             winner = g.check_winner
             print(winner)
             #dp.feedback('Loss' if winner == 1 else 'Win')
+    if True:
+        b = random_board()
+        print(b)
+        print(compact_board(b,'X'))
+        
