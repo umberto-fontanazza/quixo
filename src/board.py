@@ -25,6 +25,7 @@ def get_possible_moves(board: Board, current_player: int) -> list[tuple[Position
         that is, a list of tuples (Position, Move)"""
     possible = []
     for position in BORDERS:
+        position = (position[0], position[1])
         if board[position] == -1 or board[position] == current_player:                                #if it is blank (-1) or mine (idx)
             if position[0] == 0:                                                    #in the top row
                 if position[1] == 0:
@@ -54,6 +55,7 @@ def count_moves(board: Board) -> tuple[int, int]:
     from the side accounts for 3 moves."""
     o_moves_count, x_moves_count = 0, 0
     for position in BORDERS:
+        position = (position[0], position[1])
         slide_count = 2 if position in CORNERS else 3
         if board[position] == -1:
             o_moves_count += slide_count

@@ -1,5 +1,6 @@
 import random
-from game import Game, Move, Player
+from lib.game import Game, Move, Player
+from src.agent import DelphiPlayer
 
 
 class RandomPlayer(Player):
@@ -30,3 +31,16 @@ if __name__ == '__main__':
     winner = g.play(player1, player2)
     g.print()
     print(f"Winner: Player {winner}")
+
+    player = DelphiPlayer()
+    all_weights = []
+    for _ in range(5):
+        g.play(player, player1)
+        won = g.check_winner() == 1
+        player.train_oracle('Win' if won else 'Loss')
+        all_weights.append(player.__oracle.__weights)
+    for _ in range(5):
+        g.play(player1, player)
+        won = g.check_winner() == 0
+        player.train_oracle('Win' if won else 'Loss')
+        all_weights.append(player.__oracle.__weights)    

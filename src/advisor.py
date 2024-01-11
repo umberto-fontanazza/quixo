@@ -56,14 +56,13 @@ def compact_board(board: Board, player: PlayerID) -> float:
                 if is_legal(p1):
                     if board[p1] == 0:
                         count_o  = count_o + 1
-    print(player)
     if player == 'X' or player == 1:
         return count_x * 100 / (count_x + count_o)
     elif player == 'O' or player == 0:
         return count_o * 100 / (count_x + count_o)
 
 def is_legal(p: tuple) -> bool:
-    """usefull func for compact_board"""
+    """utility func for compact_board"""
     return 0 <= p[0] and p[0] < 5 and 0 <= p[1] and p[1] < 5
 
 def board_majority(board: Board, player: PlayerID) -> int:

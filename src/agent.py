@@ -7,9 +7,12 @@ from typing import Literal
 import numpy
 
 class DelphiPlayer(Player):
-    def __init__(self, tree_depth: int = 4) -> None:
+    def __init__(self, oracle_weights: list[float] = [], tree_depth: int = 4) -> None:
         super().__init__()
-        self.__oracle = Oracle()
+        if len(oracle_weights) > 0:
+            self.__oracle = Oracle(weights=oracle_weights)
+        else:
+            self.__oracle = Oracle()
         self.__episode: list[Board] = []
         self.__depth_limit: int = tree_depth
         self.player_index = None
@@ -99,11 +102,10 @@ class DelphiPlayer(Player):
 
 
 
+
 # TODO: remove this
 if __name__ == '__main__':
     # used for testing
-
-    dp = DelphiPlayer()
     g = Game()
 
     # informal tests
@@ -144,15 +146,32 @@ if __name__ == '__main__':
     if False:
         print(dp.make_move(g))
 
-    if False: #to do change to true
-        adv = DelphiPlayer()
-        for _ in range(2):
-            g.play(dp, adv)
-            g.print()
-            winner = g.check_winner
-            print(winner)
-            #dp.feedback('Loss' if winner == 1 else 'Win')
     if True:
+        from lib.main import RandomPlayer
+        from copy import deepcopy
+
+        N_ADVISORS = 4
+        initial_weights = ([1.0] * N_ADVISORS)
+        player = DelphiPlayer(oracle_weights= initial_weights)
+        player1 = RandomPlayer()
+
+        all_weights = []
+        for _ in range(5):
+            g.play(player, player1)
+            won = g.check_winner() == 1
+            print(won)
+            player.train_oracle('Win' if won else 'Loss')
+            all_weights.append(deepcopy(initial_weights))
+        print()    
+        for _ in range(5):
+            g.play(player1, player)
+            won = g.check_winner() == 0
+            print(won)
+            player.train_oracle('Win' if won else 'Loss')
+            all_weights.append(deepcopy(initial_weights))
+        print(all_weights)
+
+    if False:
         b = random_board()
         print(b)
         print(compact_board(b,'X'))
