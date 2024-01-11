@@ -1,5 +1,5 @@
 from src.oracle import Oracle
-from src.board import Board, Position, Outcome
+from src.board import Board, Position, Outcome, get_possible_moves, BORDER_POSITIONS
 from lib.game import Game, Move, Player
 from typing import Literal
 import numpy
@@ -9,38 +9,6 @@ import numpy
 # sys.path.append('../')
 # from quixo.lib.game import Game, Move, Player
 
-SLIDES = [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
-BORDER_POSITIONS = [(x, y) for x in range(5) for y in [0, 4]] + [(x, y) for x in [0, 4] for y in range(1, 4)]
-
-def get_possible_moves(board: Board, idx: int) -> list[tuple[Position, Move]]:
-    """returns all the possible moves given a Game object
-        that is, a list of tuples (Position, Move)"""
-    possible = []
-    for p in BORDER_POSITIONS:
-        if board[p] == -1 or board[p] == idx:                                #if it is blank (-1) or mine (idx)
-            if p[0] == 0:                                                    #in the top row
-                if p[1] == 0:
-                    possible += [(p, Move.BOTTOM), (p, Move.RIGHT)]
-                elif p[1] == 4:
-                    possible += [(p, Move.BOTTOM), (p, Move.LEFT)]
-                else:
-                    possible += [(p, Move.BOTTOM), (p, Move.LEFT), (p, Move.RIGHT)]
-            elif p[0] == 4:
-                if p[1] == 0:
-                    possible += [(p, Move.TOP), (p, Move.RIGHT)]            #in the bottom row
-                elif p[1] == 4:
-                    possible += [(p, Move.TOP), (p, Move.LEFT)]
-                else:
-                    possible += [(p, Move.TOP), (p, Move.LEFT), (p, Move.RIGHT)]
-            elif p[1] == 0:                                                 #other rows (1,2,3) on left side
-                possible += [(p, Move.TOP), (p, Move.BOTTOM), (p, Move.RIGHT)]
-            else:                                                           #other rows on right side
-                possible += [(p, Move.TOP), (p, Move.LEFT), (p, Move.BOTTOM)]
-    # i know, it is going to be evaluated again by game, but i think we could really save up some time
-    numpy.random.shuffle(possible)
-    return possible
-
-
 class DelphiPlayer(Player):
     def __init__(self, tree_depth: int = 4) -> None:
         super().__init__()
@@ -48,25 +16,25 @@ class DelphiPlayer(Player):
         self.__episode: list[Board] = []
         self.__depth_limit: int = tree_depth
 
-    def __max(self, board: Board, idx: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
+    def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
         if curr_depth >= self.__depth_limit:
-            return self.__oracle.advantage(board, idx)
+            return self.__oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
-        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in get_possible_moves(board, idx)]
+        future_boards: list[Board] = [self._apply_move(board, p, current_player) for p in get_possible_moves(board, current_player)]
         for b in future_boards:
-            tmp = self.__min(b, (idx + 1) % 2, alpha, curr_depth + 1) # compute the min value for a board
+            tmp = self.__min(b, 0 if current_player == 1 else 1, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
         return alpha
 
-    def __min(self, board: Board, idx: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
+    def __min(self, board: Board, current_player: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
         if curr_depth >= self.__depth_limit:
-            return self.__oracle.advantage(board, idx)
+            return self.__oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
-        future_boards: list[Board] = [self._apply_move(board, p, idx) for p in get_possible_moves(board, idx)]
+        future_boards: list[Board] = [self._apply_move(board, p, current_player) for p in get_possible_moves(board, current_player)]
         for b in future_boards:
-            tmp = self.__max(b, (idx + 1) % 2, beta, curr_depth + 1)
+            tmp = self.__max(b, 0 if current_player == 1 else 1, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
             beta = tmp if tmp < beta else beta                      # update beta
@@ -122,11 +90,11 @@ class DelphiPlayer(Player):
             board[(board.shape[0] - 1, from_pos[1])] = piece
         return board
 
-    def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
-        idx: int = game.get_current_player()
-        moves: list[tuple[Position, Move]] = get_possible_moves(game.get_board(), idx)
-        future_boards: list[Board] = [self._apply_move(game.get_board(), m, idx) for m in moves]
-        evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (idx + 1)%2), p) for b, p in zip(future_boards, moves)]
+    def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
+        current_player: Literal[0, 1] = game.get_current_player()
+        moves: list[tuple[Position, Move]] = get_possible_moves(game.get_board(), current_player)
+        future_boards: list[Board] = [self._apply_move(game.get_board(), m, current_player) for m in moves]
+        evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (current_player + 1)%2), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
         self.__episode.append(chosen_move[0])
         return chosen_move[2]
