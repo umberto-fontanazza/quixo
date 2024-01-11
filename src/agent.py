@@ -4,11 +4,6 @@ from lib.game import Game, Move, Player
 from typing import Literal
 import numpy
 
-"""To run use python -m src.agent from root dir"""
-# import sys                                              # Find a more elegant way for this (?)
-# sys.path.append('../')
-# from quixo.lib.game import Game, Move, Player
-
 class DelphiPlayer(Player):
     def __init__(self, tree_depth: int = 4) -> None:
         super().__init__()

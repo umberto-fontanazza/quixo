@@ -1,6 +1,6 @@
-from typing import Callable, Literal
+from typing import Callable
 from src.board import Board, PlayerID, change_symbols
-from numpy import array, trace, flip
+from numpy import trace, flip
 
 # TODO: this should be a private method but it needs to be imported for testing in test_advisor
 def line_majority_count(board: Board) -> tuple[int, int]:
