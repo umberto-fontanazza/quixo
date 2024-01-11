@@ -1,25 +1,7 @@
 from src.advisor import Advisor, ALL_ADVISORS, line_majority_count, count_moves
 from src.board import PlayerID, random_board
+from test.example_boards import board_1, board_2, board_3
 from itertools import product
-from numpy import array
-
-board_1 = array([   [-1, -1, -1,  1, -1],
-                    [-1, -1, -1, -1, -1],
-                    [-1, -1, -1,  0, -1],
-                    [-1,  1,  1,  0,  1],
-                    [-1, -1, -1,  0, -1]])
-
-board_2 = array([   [-1,  0,  1,  1,  0],
-                    [ 0,  1,  1,  1,  1],
-                    [-1, -1, -1, -1,  1],
-                    [ 1, -1,  0,  1,  0],
-                    [-1,  1,  0,  0, -1]])
-
-board_3 = array([   [ 0,  1,  0,  0,  0],
-                    [ 1,  0,  0,  0,  1],
-                    [-1,  1,  0, -1, -1],
-                    [-1,  0, -1,  1, -1],
-                    [-1,  1,  1,  0, -1]])
 
 random_boards = [random_board() for _ in range(5)]
 
