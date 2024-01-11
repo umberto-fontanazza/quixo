@@ -55,7 +55,7 @@ def count_moves(board: Board) -> tuple[int, int]:
     """Returns the count of all available moves for O and for X as a tuple.
     A piece taken from the corner of the board accounts for 2 moves while a piece
     from the side accounts for 3 moves."""
-    o_moves_count, x_moves_count = 0
+    o_moves_count, x_moves_count = 0, 0
     for position in BORDER_POSITIONS:
         slide_count = 2 if position in CORNER_POSITIONS else 3
         if board[position] == -1:

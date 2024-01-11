@@ -16,7 +16,7 @@ def test_getPossibleMoves():
     for board in test_boards:
         m1, m2 = get_possible_moves(board, 0), get_possible_moves(board, 1)
         assert len(m1) + len(m2) > 0
-    # test board with no valid moves    
+    # test board with no valid moves
     board = np.array([1] * 25).reshape(5,5)
     assert len(get_possible_moves(board, 0)) == 0
     #test number of valid moves
@@ -32,6 +32,7 @@ def test_apply_move():
     player = DelphiPlayer()
     player._apply_move(board, ((0, 3), Move.LEFT), 0)
     assert board.sum() == 24
+    print(board)
     assert board[0, 0] == 0
     #and another one, unfortunately its not easy to implement ones with a great variablity
     board = np.array([0] * 25).reshape(5,5)
@@ -66,3 +67,5 @@ def test_make_move():
         assert result[1] in [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
         assert result in get_possible_moves(Game().get_board(), 1)
       
+
+test_apply_move()      
