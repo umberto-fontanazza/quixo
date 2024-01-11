@@ -4,6 +4,7 @@ from src.position import Position
 from lib.game import Game, Move, Player
 from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
+from random import choice
 import numpy
 
 class DelphiPlayer(Player):
@@ -100,7 +101,14 @@ class DelphiPlayer(Player):
         self.__oracle.feedback(self.__episode, self.player_index, outcome)
         self.__episode = []
 
+class BetterRandomPlayer(Player):
+    """Player calss that should not get stuck in infinite stochastic loops"""
+    def __init__(self) -> None:
+        super().__init__()
 
+    def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
+        return choice(get_possible_moves(game._board, game.get_current_player()))
+    
 
 
 # TODO: remove this
@@ -147,13 +155,12 @@ if __name__ == '__main__':
         print(dp.make_move(g))
 
     if True:
-        from lib.main import RandomPlayer
         from copy import deepcopy
 
         N_ADVISORS = 4
         initial_weights = ([1.0] * N_ADVISORS)
         player = DelphiPlayer(oracle_weights= initial_weights)
-        player1 = RandomPlayer()
+        player1 = BetterRandomPlayer()
 
         all_weights = []
         for _ in range(5):
