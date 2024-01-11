@@ -1,9 +1,9 @@
-from typing import Literal
+from typing import Literal, Annotated
 from numpy.typing import NDArray
 from copy import deepcopy
 import numpy as np
 
-Board = NDArray
+Board = Annotated[NDArray[np.int8], Literal[5, 5]]
 Position = tuple[int, int]
 PlayerID = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
