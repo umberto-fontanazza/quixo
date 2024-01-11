@@ -20,32 +20,49 @@ def change_symbols(board: Board) -> Board:
     b[b == -3] = 0
     return b
 
-BORDER_POSITIONS = [(x, y) for x in range(5) for y in [0, 4]] + [(x, y) for x in [0, 4] for y in range(1, 4)]
+BORDER_POSITIONS = [(x, y) for x in range(5) for y in (0, 4)] + [(x, y) for x in (0,4) for y in range(1, 4)]
+CORNER_POSITIONS = [(x, y) for x in (0, 4) for y in (0, 4)]
 
 def get_possible_moves(board: Board, current_player: int) -> list[tuple[Position, Move]]:
     """returns all the possible moves given a Game object
         that is, a list of tuples (Position, Move)"""
     possible = []
-    for p in BORDER_POSITIONS:
-        if board[p] == -1 or board[p] == current_player:                                #if it is blank (-1) or mine (idx)
-            if p[0] == 0:                                                    #in the top row
-                if p[1] == 0:
-                    possible += [(p, Move.BOTTOM), (p, Move.RIGHT)]
-                elif p[1] == 4:
-                    possible += [(p, Move.BOTTOM), (p, Move.LEFT)]
+    for position in BORDER_POSITIONS:
+        if board[position] == -1 or board[position] == current_player:                                #if it is blank (-1) or mine (idx)
+            if position[0] == 0:                                                    #in the top row
+                if position[1] == 0:
+                    possible += [(position, Move.BOTTOM), (position, Move.RIGHT)]
+                elif position[1] == 4:
+                    possible += [(position, Move.BOTTOM), (position, Move.LEFT)]
                 else:
-                    possible += [(p, Move.BOTTOM), (p, Move.LEFT), (p, Move.RIGHT)]
-            elif p[0] == 4:
-                if p[1] == 0:
-                    possible += [(p, Move.TOP), (p, Move.RIGHT)]            #in the bottom row
-                elif p[1] == 4:
-                    possible += [(p, Move.TOP), (p, Move.LEFT)]
+                    possible += [(position, Move.BOTTOM), (position, Move.LEFT), (position, Move.RIGHT)]
+            elif position[0] == 4:
+                if position[1] == 0:
+                    possible += [(position, Move.TOP), (position, Move.RIGHT)]            #in the bottom row
+                elif position[1] == 4:
+                    possible += [(position, Move.TOP), (position, Move.LEFT)]
                 else:
-                    possible += [(p, Move.TOP), (p, Move.LEFT), (p, Move.RIGHT)]
-            elif p[1] == 0:                                                 #other rows (1,2,3) on left side
-                possible += [(p, Move.TOP), (p, Move.BOTTOM), (p, Move.RIGHT)]
+                    possible += [(position, Move.TOP), (position, Move.LEFT), (position, Move.RIGHT)]
+            elif position[1] == 0:                                                 #other rows (1,2,3) on left side
+                possible += [(position, Move.TOP), (position, Move.BOTTOM), (position, Move.RIGHT)]
             else:                                                           #other rows on right side
-                possible += [(p, Move.TOP), (p, Move.LEFT), (p, Move.BOTTOM)]
+                possible += [(position, Move.TOP), (position, Move.LEFT), (position, Move.BOTTOM)]
     # i know, it is going to be evaluated again by game, but i think we could really save up some time
     np.random.shuffle(possible)
     return possible
+
+def count_moves(board: Board) -> tuple[int, int]:
+    """Returns the count of all available moves for O and for X as a tuple.
+    A piece taken from the corner of the board accounts for 2 moves while a piece
+    from the side accounts for 3 moves."""
+    o_moves_count, x_moves_count = 0
+    for position in BORDER_POSITIONS:
+        slide_count = 2 if position in CORNER_POSITIONS else 3
+        if board[position] == -1:
+            o_moves_count += slide_count
+            x_moves_count += slide_count
+        elif board[position] == 1:
+            x_moves_count += slide_count
+        else:
+            o_moves_count += slide_count
+    return (o_moves_count, x_moves_count)

@@ -42,47 +42,18 @@ class DelphiPlayer(Player):
         boardcopy[move[0]] = idx                            # take the piece
         return self.__slide(boardcopy, move)                # slide the pieces
 
-    # TODO: test, i copied from the game.py and adapted it
-    def __slide(self, board: Board, move: tuple[Position, Move]):
+    def __slide(self, board: Board, move: tuple[Position, Move]) -> Board:
         from_pos = move[0]
         slide = move[1]
-        piece = board[from_pos]
-        # if the player wants to slide it to the left
-        if slide == Move.LEFT:
-            # for each column starting from the column of the piece and moving to the left
-            for i in range(from_pos[1], 0, -1):
-            # copy the value contained in the same row and the previous column
-                board[(from_pos[0], i)] = board[(
-                    from_pos[0], i - 1)]
-            # move the piece to the left
-            board[(from_pos[0], 0)] = piece
-        # if the player wants to slide it to the right
-        elif slide == Move.RIGHT:
-            # for each column starting from the column of the piece and moving to the right
-            for i in range(from_pos[1], board.shape[1] - 1, 1):
-                # copy the value contained in the same row and the following column
-                board[(from_pos[0], i)] = board[(
-                    from_pos[0], i + 1)]
-            # move the piece to the right
-            board[(from_pos[0], board.shape[1] - 1)] = piece
-        # if the player wants to slide it upward
-        elif slide == Move.TOP:
-            # for each row starting from the row of the piece and going upward
-            for i in range(from_pos[0], 0, -1):
-                # copy the value contained in the same column and the previous row
-                board[(i, from_pos[1])] = board[(
-                    i - 1, from_pos[1])]
-            # move the piece up
-            board[(0, from_pos[1])] = piece
-        # if the player wants to slide it downward
+        axis_0, axis_1 = from_pos
+        if slide == Move.RIGHT:
+            self._board[axis_0] = numpy.roll(self._board[axis_0], -1)
+        elif slide == Move.LEFT:
+            self._board[axis_0] = numpy.roll(self._board[axis_0], 1)
         elif slide == Move.BOTTOM:
-            # for each row starting from the row of the piece and going downward
-            for i in range(from_pos[0], board.shape[0] - 1, 1):
-                # copy the value contained in the same column and the following row
-                board[(i, from_pos[1])] = board[(
-                    i + 1, from_pos[1])]
-            # move the piece down
-            board[(board.shape[0] - 1, from_pos[1])] = piece
+            self._board[:, axis_1] = numpy.roll(self._board[:, axis_1], -1)
+        elif slide == Move.TOP:
+            self._board[:, axis_1] = numpy.roll(self._board[:, axis_1], 1)
         return board
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
