@@ -1,5 +1,6 @@
 from src.oracle import Oracle
-from src.board import Board, Position, Outcome,get_possible_moves, BORDERS,random_board, check_winner
+from src.board import Board, Outcome, get_possible_moves, BORDERS, random_board, check_winner
+from src.position import Position
 from lib.game import Game, Move, Player
 from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
