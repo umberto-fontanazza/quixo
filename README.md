@@ -1,3 +1,8 @@
+# Manual
+Execute terminal commands from the top level directory quixo.
+Testing: {pytest test}
+Speed evaluation: {python -m benchmark.speed}
+
 # WHO DOES WHAT
 
 Alby -> min max   
