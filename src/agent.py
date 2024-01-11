@@ -35,7 +35,7 @@ class DelphiPlayer(Player):
             tmp = self.__max(b, 0 if current_player == 1 else 1, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
-            beta = tmp if tmp < beta else beta                      # update beta
+            beta = tmp if tmp < beta else beta                      # update beta with the smallest value found so far
         return beta
 
     def _apply_move(self, boardcopy: Board, move: tuple[Position, Move], idx: int) -> Board:
@@ -55,13 +55,13 @@ class DelphiPlayer(Player):
         slide = move[1]
         axis_0, axis_1 = from_pos
         if slide == Move.RIGHT:
-            board[axis_0] = numpy.roll(board[axis_0], -slide_value)
+            board[axis_0, axis_1:] = numpy.roll(board[axis_0, axis_1:], -slide_value)
         elif slide == Move.LEFT:
-            board[axis_0] = numpy.roll(board[axis_0], slide_value)
+            board[axis_0, :(axis_1+1)] = numpy.roll(board[axis_0, :(axis_1+1)], slide_value)
         elif slide == Move.BOTTOM:
-            board[:, axis_1] = numpy.roll(board[:, axis_1], -slide_value)
+            board[axis_0:, axis_1] = numpy.roll(board[axis_0:, axis_1], -slide_value)
         elif slide == Move.TOP:
-            board[:, axis_1] = numpy.roll(board[:, axis_1], slide_value)
+            board[:(axis_0+1), axis_1] = numpy.roll(board[:(axis_0+1), axis_1], slide_value)
         return board
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:

@@ -32,14 +32,18 @@ def test_apply_move():
     player = DelphiPlayer()
     player._apply_move(board, ((0, 3), Move.LEFT), 0)
     assert board.sum() == 24
-    print(board)
     assert board[0, 0] == 0
+    player._apply_move(board, ((2, 4), Move.LEFT), 0)
+    assert board[2, 0] == 0
+
     #and another one, unfortunately its not easy to implement ones with a great variablity
     board = np.array([0] * 25).reshape(5,5)
     player = DelphiPlayer()
-    player._apply_move(board, ((3, 4), 0), 1)
+    player._apply_move(board, ((3, 4), Move.TOP), 1)
     assert board.sum() == 1
-    assert board[0, 3] == 0
+    assert board[0, 4] == 1
+    #player._apply_move()board,
+
     #nothing should have changed
     board = np.array([1] * 25).reshape(5,5)
     player = DelphiPlayer()
@@ -66,6 +70,4 @@ def test_make_move():
         assert result[0][1] >= 0 and result[0][1] <= 4
         assert result[1] in [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
         assert result in get_possible_moves(Game().get_board(), 1)
-      
 
-test_apply_move()      
