@@ -63,3 +63,32 @@ def count_moves(board: Board) -> tuple[int, int]:
         else:
             o_moves_count += slide_count
     return (o_moves_count, x_moves_count)
+
+def check_winner(board: Board) -> set[PlayerID]:
+        '''Check the winner.
+        Returns the player IDs that have a winning row, column, or diagonal'''
+        winners = []
+
+        # for each row
+        for x in range(board.shape[0]):
+            # if a player has completed an entire row
+            if board[x, 0] != -1 and all(board[x, :] == board[x, 0]):
+                winners.append(board[x, 0])
+        # for each column
+        for y in range(board.shape[1]):
+            # if a player has completed an entire column
+            if board[0, y] != -1 and all(board[:, y] == board[0, y]):
+                winners.append(board[0, y])
+        # if a player has completed the principal diagonal
+        if board[0, 0] != -1 and all(
+            [board[x, x]
+                for x in range(board.shape[0])] == board[0, 0]
+        ):
+            winners.append(board[0, 0])
+        # if a player has completed the secondary diagonal
+        if board[0, -1] != -1 and all(
+            [board[x, -(x + 1)]
+             for x in range(board.shape[0])] == board[0, -1]
+        ):
+            winners.append(board[0, -1])
+        return set(winners)

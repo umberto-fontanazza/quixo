@@ -1,5 +1,5 @@
 from src.oracle import Oracle
-from src.board import Board, Position, Outcome,get_possible_moves, BORDERS,random_board
+from src.board import Board, Position, Outcome,get_possible_moves, BORDERS,random_board, check_winner
 from lib.game import Game, Move, Player
 from src.advisor import is_legal, compact_board # import for testing
 from typing import Literal
@@ -13,8 +13,24 @@ class DelphiPlayer(Player):
         self.__depth_limit: int = tree_depth
         self.player_index = None
 
+    def __check_for_terminal_conditions(self, board: Board, current_player: Literal[0,1] ) -> int:
+        """given a terminal state board, return a valid minmax value
+            if no one won, returns -1"""
+        winners = check_winner(board)
+        opponent = 0 if current_player == 1 else 1
+        if opponent in winners:
+            return 0
+        if current_player in winners:
+            return 100
+        return -1
+
     # TODO: implement terminal states early stopping (if someone won, set values 0/100 depending on current_player)
     def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
+        #check if the board is a terminal condition
+        value = self.__check_for_terminal_conditions(board, current_player)
+        if value >= 0:
+            return value
+        #check if we are above the tree depth limit
         if curr_depth >= self.__depth_limit:
             return self.__oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
@@ -27,6 +43,11 @@ class DelphiPlayer(Player):
         return alpha
 
     def __min(self, board: Board, current_player: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
+        #check if the board is a terminal condition
+        value = self.__check_for_terminal_conditions(board, current_player)
+        if value >= 0:
+            return value
+        #check if we are above the tree depth limit
         if curr_depth >= self.__depth_limit:
             return self.__oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
@@ -46,22 +67,17 @@ class DelphiPlayer(Player):
         return self.__slide(boardcopy, move)                # slide the pieces
 
     def __slide(self, board: Board, move: tuple[Position, Move]) -> Board:
-        # top e bottom funzionano su righe
-        # left e right funzionano su colonne
-        # righe + left/right -> aggiusta slide
-        # colonne + top/bottom -> aggiusta slide (ma va)
-        slide_value = 1
         from_pos = move[0]
         slide = move[1]
         axis_0, axis_1 = from_pos
         if slide == Move.RIGHT:
-            board[axis_0, axis_1:] = numpy.roll(board[axis_0, axis_1:], -slide_value)
+            board[axis_0, axis_1:] = numpy.roll(board[axis_0, axis_1:], -1)
         elif slide == Move.LEFT:
-            board[axis_0, :(axis_1+1)] = numpy.roll(board[axis_0, :(axis_1+1)], slide_value)
+            board[axis_0, :(axis_1+1)] = numpy.roll(board[axis_0, :(axis_1+1)], 1)
         elif slide == Move.BOTTOM:
-            board[axis_0:, axis_1] = numpy.roll(board[axis_0:, axis_1], -slide_value)
+            board[axis_0:, axis_1] = numpy.roll(board[axis_0:, axis_1], -1)
         elif slide == Move.TOP:
-            board[:(axis_0+1), axis_1] = numpy.roll(board[:(axis_0+1), axis_1], slide_value)
+            board[:(axis_0+1), axis_1] = numpy.roll(board[:(axis_0+1), axis_1], 1)
         return board
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:

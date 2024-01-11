@@ -66,9 +66,15 @@ def is_legal(p: tuple) -> bool:
     """usefull func for compact_board"""
     return 0 <= p[0] and p[0] < 5 and 0 <= p[1] and p[1] < 5
 
+def board_majority(board: Board, player: PlayerID) -> int:
+    """advisor based on the difference of placed tiles between the players"""
+    total_count: int = int(change_symbols(board).sum())
+    return total_count if player == 1 else -total_count
+
 Advisor = Callable[[Board, PlayerID], float]
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
     compact_board,
-    available_moves_majority
+    available_moves_majority,
+    board_majority
 ]
