@@ -27,15 +27,16 @@ def test_list_moves2():
         O_moves, X_moves = board.list_moves('O'), board.list_moves('X')
         assert len(O_moves) + len(X_moves) > 0
     # test board with no valid moves
-    board = Board(array([1] * 25).reshape(5,5))
-    assert len(board.list_moves('O')) == 0
-    #test number of valid moves
-    assert len(board.list_moves('X')) == (12 * 3 + 4 * 2)
-    #test should give only 2 valid moves
+    board = Board(array([1] * 25).reshape(5, 5))
+    assert len(board.list_moves("O")) == 0
+    # test number of valid moves
+    assert len(board.list_moves("X")) == (12 * 3 + 4 * 2)
+    # test should give only 2 valid moves
     arr = board.ndarray
-    arr[0,0] = 0
+    arr[0, 0] = 0
     edited_board = Board(arr)
-    assert len(edited_board.list_moves('O')) == 2
+    assert len(edited_board.list_moves("O")) == 2
+
 
 def test_apply_move():
     move = Position(0, 3), Move.LEFT
@@ -47,3 +48,24 @@ def test_apply_move():
         [-1,  1,  1,  0,  1],
         [-1, -1, -1,  0, -1]])
     assert (actual_result == expected_result).all()
+
+
+def test_lines():
+    actual = board_1.lines()
+    expected = [
+        array([-1, -1, -1, 1, -1]),
+        array([-1, -1, -1, -1, -1]),
+        array([-1, -1, -1, 0, -1]),
+        array([-1, 1, 1, 0, 1]),
+        array([-1, -1, -1, 0, -1]),
+        array([-1, -1, -1, -1, -1]),
+        array([-1, -1, -1, 1, -1]),
+        array([-1, -1, -1, 1, -1]),
+        array([1, -1, 0, 0, 0]),
+        array([-1, -1, -1, 1, -1]),
+        array([-1, -1, -1, 0, -1]),
+        array([-1, 1, -1, -1, -1]),
+    ]
+
+    for actual_line, expected_line in zip(actual, expected):
+        assert (actual_line == expected_line).all()

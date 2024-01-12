@@ -114,3 +114,12 @@ class Board():
         elif slide == Move.TOP:
             board[:(axis_0+1), axis_1] = np.roll(board[:(axis_0+1), axis_1], 1)
         return board
+
+    def lines(self) -> list[NDArray[np.int8]]:
+        """Returns a list of 12 ndarrays, one for each row, col and diag"""
+        arr = self.ndarray
+        _lines: list[NDArray] = [row for row in arr]
+        _lines += [col for col in np.transpose(arr)]
+        _lines += [arr.diagonal()]
+        _lines += [arr[::-1].diagonal()]
+        return _lines
