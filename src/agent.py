@@ -36,7 +36,7 @@ class DelphiPlayer(Player):
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player)]
         for b in future_boards:
-            tmp = self.__min(b, 0 if current_player == 1 else 1, alpha, curr_depth + 1) # compute the min value for a board
+            tmp = self.__min(b, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
@@ -53,7 +53,7 @@ class DelphiPlayer(Player):
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player)]
         for b in future_boards:
-            tmp = self.__max(b, 0 if current_player == 1 else 1, beta, curr_depth + 1)
+            tmp = self.__max(b, self.player_index, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
             beta = tmp if tmp < beta else beta                      # update beta with the smallest value found so far
@@ -72,7 +72,7 @@ class DelphiPlayer(Player):
         board = Board(game.get_board())
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player) # moves(game.get_board(), current_player)
         future_boards: list[Board] = [board.move(move, current_player) for move in moves]
-        evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, (current_player + 1)%2), p) for b, p in zip(future_boards, moves)]
+        evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, self.player_index), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
         self.__episode.append(chosen_move[0])
         return chosen_move[2]
@@ -82,6 +82,10 @@ class DelphiPlayer(Player):
         player = None # TODO: fill this variable
         self.__oracle.feedback(self.__episode, self.player_index, outcome)
         self.__episode = []
+
+    def get_oracle(self) -> Oracle:
+        """returns the oracle"""
+        return self.__oracle
 
 """
 # TODO: remove this

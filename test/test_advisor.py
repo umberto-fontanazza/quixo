@@ -1,4 +1,4 @@
-from src.advisor import Advisor, ALL_ADVISORS, line_majority_count
+from src.advisor import Advisor, ALL_ADVISORS, line_majority_count, board_majority
 from src.board import PlayerID, Board
 from test.example_boards import board_1, board_2, board_3, example_boards
 from itertools import product
@@ -20,3 +20,7 @@ def test_count_moves():
     assert board_1.count_moves() == (38, 41)
     assert board_2.count_moves() == (26, 27)
     assert board_3.count_moves() == (29, 31)
+
+def test_board_majority():
+    assert board_majority(board_1, 1) == 52
+    assert board_majority(board_1, 0) == 48
