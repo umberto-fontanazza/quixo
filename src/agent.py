@@ -3,8 +3,6 @@ from src.board import Board, Outcome, BORDERS
 from src.position import Position
 from lib.game import Game, Move, Player
 from typing import Literal
-from random import choice
-import numpy
 
 class DelphiPlayer(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
