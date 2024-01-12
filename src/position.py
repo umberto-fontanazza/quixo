@@ -1,6 +1,7 @@
 from typing import Literal
 from itertools import product
 from dataclasses import dataclass
+from lib.game import Move
 
 @dataclass(frozen=True)
 class Position():
@@ -27,6 +28,23 @@ class Position():
         if self.axis_1 not in (0, 4):
             return False
         return True
+
+    @property
+    def slides(self) -> list[Move]:
+        slides = [slide for slide in Move]
+        if self.axis_0 == 0:
+            slides.remove(Move.TOP)
+        elif self.axis_0 == 4:
+            slides.remove(Move.BOTTOM)
+
+        if self.axis_1 == 0:
+            slides.remove(Move.LEFT)
+        elif self.axis_1 == 4:
+            slides.remove(Move.RIGHT)
+        return slides
+
+    def as_tuple(self):
+        return (self.axis_0, self.axis_1)
 
 CORNERS = [Position(x, y) for x, y in product((0, 4), (0, 4))]
 BORDERS = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
