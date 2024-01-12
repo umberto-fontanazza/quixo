@@ -1,5 +1,5 @@
 from src.oracle import Oracle
-from src.board import Board, Outcome, BORDERS
+from src.board import Board, Outcome
 from src.position import Position
 from lib.game import Game, Move, Player
 from typing import Literal
