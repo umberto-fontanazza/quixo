@@ -24,7 +24,7 @@ class Position():
 
     def is_corner(self) -> bool:
         if self.axis_0 not in (0, 4):
-         return False
+            return False
         if self.axis_1 not in (0, 4):
             return False
         return True
