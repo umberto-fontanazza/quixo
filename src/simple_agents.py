@@ -1,7 +1,7 @@
 from lib.game import Game, Player, Move
 
 class BetterRandomPlayer(Player):
-    """Player calss that should not get stuck in infinite stochastic loops"""
+    """Player class that should not get stuck in infinite stochastic loops"""
     def __init__(self) -> None:
         super().__init__()
 

@@ -3,6 +3,7 @@ from src.board import Board, Outcome
 from src.position import Position
 from lib.game import Game, Move, Player
 from typing import Literal
+from src.simple_agents import BetterRandomPlayer
 
 class DelphiPlayer(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -12,22 +13,9 @@ class DelphiPlayer(Player):
         self.__depth_limit: int = tree_depth
         self.player_index = None
 
-    # TODO: tidy up and move to module board.py
-    def __check_for_terminal_conditions(self, board: Board, current_player: Literal[0,1] ) -> int:
-        """given a terminal state board, return a valid minmax value
-            if no one won, returns -1"""
-        winners = board.check_winner()
-        opponent = 0 if current_player == 1 else 1
-        if opponent in winners:
-            return 0
-        if current_player in winners:
-            return 100
-        return -1
-
-    # TODO: implement terminal states early stopping (if someone won, set values 0/100 depending on current_player)
     def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
-        value = self.__check_for_terminal_conditions(board, current_player)
+        value = Board.check_for_terminal_conditions(board, current_player)
         if value >= 0:
             return value
         #check if we are above the tree depth limit
@@ -44,7 +32,7 @@ class DelphiPlayer(Player):
 
     def __min(self, board: Board, current_player: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
         #check if the board is a terminal condition
-        value = self.__check_for_terminal_conditions(board, current_player)
+        value = Board.check_for_terminal_conditions(board, current_player)
         if value >= 0:
             return value
         #check if we are above the tree depth limit
@@ -80,14 +68,14 @@ class DelphiPlayer(Player):
     def train_oracle(self, outcome: Outcome) -> None:
         """at the end of a game, gives feedback to the oracle"""
         player = None # TODO: fill this variable
-        self.__oracle.feedback(self.__episode, self.player_index, outcome)
+        self.__oracle.feedback(self.__episode, player, outcome)
         self.__episode = []
 
     def get_oracle(self) -> Oracle:
         """returns the oracle"""
         return self.__oracle
 
-"""
+
 # TODO: remove this
 if __name__ == '__main__':
     # used for testing
@@ -159,4 +147,4 @@ if __name__ == '__main__':
         b = random_board()
         print(b)
         print(compact_board(b,'X'))
-         """
+

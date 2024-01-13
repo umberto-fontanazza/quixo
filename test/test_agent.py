@@ -3,17 +3,16 @@ from src.board import Board
 from lib.game import Game, Move
 from unittest.mock import patch
 
-def skip_test_choose_move():
+def test_choose_move():
     player = DelphiPlayer()
 
     # Define the mock function that will replace src.agent.Oracle.advantage
     def mock_oracle_function(board: Board, idx: int):
-        arr = board.ndarray
-        return (arr[arr == idx] + 1).sum()
+        return 0
 
     #should return a valid move
-    with patch('src.agent.Oracle.advantage', side_effect=mock_oracle_function):
-        # Inside this block, calls to src.agent.Oracle.advantage will use the mock function
+    with patch('src.oracle.Oracle.advantage', side_effect=mock_oracle_function):
+        # Inside this block, calls to src.oracle.Oracle.advantage will use the mock function
         g = Game()
         result = player.choose_move(g)
         board = Board(g.get_board())
