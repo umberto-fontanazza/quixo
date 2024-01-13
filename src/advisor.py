@@ -69,8 +69,7 @@ def is_legal(pos: tuple) -> bool:
 
 def board_majority(board: Board, player: PlayerID) -> int:
     """advisor based on the difference of placed tiles between the players"""
-    arr = Board.change_symbols(board.ndarray)
-    total_count: int = int(arr.sum())
+    total_count: int = int(Board.change_symbols(board.ndarray).sum())
     return total_count * 2 + 50 if player == 1 else 50 - 2 * total_count
 
 
