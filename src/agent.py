@@ -76,7 +76,6 @@ class DelphiPlayer(Player):
         """returns the oracle"""
         return self.__oracle
 
-
 # TODO: remove this
 if __name__ == '__main__':
     # used for testing
