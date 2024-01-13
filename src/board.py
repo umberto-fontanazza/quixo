@@ -54,8 +54,7 @@ class Board():
         current_player = 0 if current_player == 0 or current_player == 'O' else 1
         legal_moves = []
         board = self.__board
-        symmetry_axes = self.symmetries if filter_out_symmetrics else set()
-        explorable_position = Position.filter_out_symmetrics(BORDERS, symmetry_axes)
+        explorable_position = BORDERS if not filter_out_symmetrics else Position.filter_out_symmetrics(BORDERS, self.symmetries)
         for position in explorable_position:
             if board[position.as_tuple()] != -1 and board[position.as_tuple()] != current_player:
                 continue # it belongs to the opponent, ignore
