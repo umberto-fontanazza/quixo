@@ -1,7 +1,9 @@
+from __future__ import annotations
+from lib.game import Move
+from src.symmetry import Symmetry
 from typing import Literal
 from itertools import product
 from dataclasses import dataclass
-from lib.game import Move
 
 @dataclass(frozen=True)
 class Position():
@@ -43,8 +45,18 @@ class Position():
             slides.remove(Move.RIGHT)
         return slides
 
+    def symmetric(self, axis: Symmetry) -> Position:
+        if axis == Symmetry.HORIZONTAL:
+            return Position(self.axis_0, 4 - self.axis_1)
+        if axis == Symmetry.VERTICAL:
+            return Position(4 - self.axis_0, self.axis_1)
+        if axis == Symmetry.DIAGONAL:
+            return Position(self.axis_1, self.axis_0)
+        if axis == Symmetry.ANTIDIAGONAL:
+            return Position(4 - self.axis_1, 4 - self.axis_0)
+
     def as_tuple(self):
         return (self.axis_0, self.axis_1)
 
-CORNERS = [Position(x, y) for x, y in product((0, 4), (0, 4))]
-BORDERS = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
+CORNERS: list[Position] = [Position(x, y) for x, y in product((0, 4), (0, 4))]
+BORDERS: list[Position] = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
