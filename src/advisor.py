@@ -47,25 +47,25 @@ def compact_board(board: Board, player: PlayerID) -> float:
     count_x = 0
     count_o = 0
     arr = board.ndarray
-    for p in [(x, y) for x in range(5) for y in range(5)]:
-        if arr[p] == 1:
-            for p1 in [(p[0]-1,p[1]-1),(p[0]-1,p[1]),(p[0]-1,p[1]+1),(p[0]+1,p[1]-1),(p[0]+1,p[1]),(p[0]+1,p[1]+1),(p[0],p[1]-1),(p[0],p[1]+1)]:
-                if is_legal(p1):
-                    if arr[p1] == 1:
+    for pos in [(x, y) for x in range(5) for y in range(5)]:
+        if arr[pos] == 1:
+            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
+                if is_legal(pos1):
+                    if arr[pos1] == 1:
                         count_x = count_x + 1
-        elif arr[p] == 0:
-            for p1 in [(p[0]-1,p[1]-1),(p[0]-1,p[1]),(p[0]-1,p[1]+1),(p[0]+1,p[1]-1),(p[0]+1,p[1]),(p[0]+1,p[1]+1),(p[0],p[1]-1),(p[0],p[1]+1)]:
-                if is_legal(p1):
-                    if arr[p1] == 0:
+        elif arr[pos] == 0:
+            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
+                if is_legal(pos1):
+                    if arr[pos1] == 0:
                         count_o  = count_o + 1
     if player == 'X' or player == 1:
         return count_x * 100 / (count_x + count_o)
     elif player == 'O' or player == 0:
         return count_o * 100 / (count_x + count_o)
 
-def is_legal(p: tuple) -> bool:
+def is_legal(pos: tuple) -> bool:
     """utility func for compact_board"""
-    return 0 <= p[0] and p[0] < 5 and 0 <= p[1] and p[1] < 5
+    return 0 <= pos[0] and pos[0] < 5 and 0 <= pos[1] and pos[1] < 5
 
 def board_majority(board: Board, player: PlayerID) -> int:
     """advisor based on the difference of placed tiles between the players"""
