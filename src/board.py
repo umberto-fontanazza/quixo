@@ -1,6 +1,6 @@
 from __future__ import annotations
 from lib.game import Move
-from src.position import Position, CORNERS, BORDERS
+from src.position import Position, BORDERS
 from typing import Literal, Annotated
 from copy import deepcopy
 from numpy.typing import NDArray
@@ -40,7 +40,8 @@ class Board():
 
     @staticmethod
     def change_symbols(board: NDArray) -> NDArray:
-        # '''Takes in a board where empty = -1, O = 0 and X = 1 and returns a board where empty = 0, O = -1 and X = 1'''
+        """Takes in a board where   empty = -1, O =  0 and X = 1 and
+        returns a board where       empty =  0, O = -1 and X = 1"""
         b: NDArray = deepcopy(board)
         b = b * 2
         b = b -1
@@ -79,34 +80,16 @@ class Board():
                 o_moves_count += slide_count
         return (o_moves_count, x_moves_count)
 
-    def check_winner(self) -> set[PlayerID]:
+    def check_winners(self) -> set[PlayerID]:
         '''Check the winner.
         Returns the player IDs that have a winning row, column, or diagonal'''
-        winners = []
-        board = self.__board
-        # for each row
-        for x in range(board.shape[0]):
-            # if a player has completed an entire row
-            if board[x, 0] != -1 and all(board[x, :] == board[x, 0]):
-                winners.append(board[x, 0])
-        # for each column
-        for y in range(board.shape[1]):
-            # if a player has completed an entire column
-            if board[0, y] != -1 and all(board[:, y] == board[0, y]):
-                winners.append(board[0, y])
-        # if a player has completed the principal diagonal
-        if board[0, 0] != -1 and all(
-            [board[x, x]
-                for x in range(board.shape[0])] == board[0, 0]
-        ):
-            winners.append(board[0, 0])
-        # if a player has completed the secondary diagonal
-        if board[0, -1] != -1 and all(
-            [board[x, -(x + 1)]
-             for x in range(board.shape[0])] == board[0, -1]
-        ):
-            winners.append(board[0, -1])
-        return set(winners)
+        _winners: set[PlayerID] = set()
+        for line in self.lines:
+            if (line == line[0]).all():
+                if line[0] == -1:
+                    continue
+                _winners.add(line[0])
+        return _winners
 
     def move(self, move: tuple[Position, Move], current_player: Literal[0, 1, 'X', 'O']) -> Board:
         """applies move to the board - out of place"""
@@ -131,6 +114,7 @@ class Board():
             board[:(axis_0+1), axis_1] = np.roll(board[:(axis_0+1), axis_1], 1)
         return board
 
+    @property
     def lines(self) -> list[NDArray[np.int8]]:
         """Returns a list of 12 ndarrays, one for each row, col and diag"""
         arr = self.ndarray
@@ -144,7 +128,7 @@ class Board():
     def check_for_terminal_conditions(board: Board, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
             if no one won, returns -1"""
-        winners = board.check_winner()
+        winners = board.check_winners()
         opponent = 0 if current_player == 1 else 1
         if opponent in winners:
             return 0
