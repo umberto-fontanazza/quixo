@@ -68,7 +68,7 @@ class DelphiPlayer(Player):
     def train_oracle(self, outcome: Outcome) -> None:
         """at the end of a game, gives feedback to the oracle"""
         player = None # TODO: fill this variable
-        self.__oracle.feedback(self.__episode, player, outcome)
+        self.__oracle.feedback(self.__episode, self.player_index, outcome)
         self.__episode = []
 
     def get_oracle(self) -> Oracle:
