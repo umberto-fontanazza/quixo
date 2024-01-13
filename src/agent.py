@@ -22,7 +22,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.__depth_limit:
             return self.__oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player)]
+        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
         for b in future_boards:
             tmp = self.__min(b, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
@@ -39,7 +39,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.__depth_limit:
             return self.__oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player)]
+        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
         for b in future_boards:
             tmp = self.__max(b, self.player_index, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
@@ -51,6 +51,7 @@ class DelphiPlayer(Player):
         """Alias is required by lib"""
         position, slide = self.choose_move(game)
         position = position.as_tuple()
+        position = (position[1], position[0])
         return position, slide
 
     def choose_move(self, game: Game) -> tuple[Position, Move]:
@@ -58,7 +59,7 @@ class DelphiPlayer(Player):
         current_player: Literal[0, 1] = game.get_current_player() # type: ignore
         self.player_index = current_player
         board = Board(game.get_board())
-        moves: list[tuple[Position, Move]] =  board.list_moves(current_player) # moves(game.get_board(), current_player)
+        moves: list[tuple[Position, Move]] =  board.list_moves(current_player)
         future_boards: list[Board] = [board.move(move, current_player) for move in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, self.player_index), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
@@ -124,24 +125,34 @@ if __name__ == '__main__':
 
         N_ADVISORS = 4
         initial_weights = ([1.0] * N_ADVISORS)
-        player = DelphiPlayer(oracle_weights= initial_weights)
+        player = DelphiPlayer(tree_depth=3, oracle_weights= initial_weights)
         player1 = BetterRandomPlayer()
 
         all_weights = []
-        for _ in range(5):
-            g.play(player, player1)
+        wins, loses = 0, 0
+        for _ in range(1000):
+            g.play(player1, player)
             won = g.check_winner() == 1
             print(won)
+            if won:
+                won += 1
+            else:
+                loses += 1    
             player.train_oracle('Win' if won else 'Loss')
             all_weights.append(deepcopy(initial_weights))
-        print()
-        for _ in range(5):
+        print()    
+        for _ in range(1000):
             g.play(player1, player)
             won = g.check_winner() == 0
             print(won)
+            if won:
+                won += 1
+            else:
+                loses += 1 
             player.train_oracle('Win' if won else 'Loss')
             all_weights.append(deepcopy(initial_weights))
         print(all_weights)
+        print(wins, loses)
 
     if False:
         b = random_board()

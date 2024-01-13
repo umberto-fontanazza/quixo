@@ -37,6 +37,13 @@ def test_list_moves2():
     edited_board = Board(arr)
     assert len(edited_board.list_moves("O")) == 2
 
+def test_list_moves_3():
+    board = Board(array([[ 1,  1, -1,  0,  0],
+                         [ 0, -1, -1, -1,  0],
+                         [ 0, -1, -1, -1,  0],
+                         [ 1,  0, -1, -1, -1],
+                         [ 1,  1,  1,  0, -1]]))
+    assert len(board.list_moves(1)) == 24
 
 def test_apply_move():
     move = Position(0, 3), Move.LEFT
