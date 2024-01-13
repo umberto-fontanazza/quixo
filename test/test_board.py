@@ -59,7 +59,7 @@ def test_apply_move():
 
 
 def test_lines():
-    actual = board_1.lines()
+    actual = board_1.lines
     expected = [
         array([-1, -1, -1, 1, -1]),
         array([-1, -1, -1, -1, -1]),
