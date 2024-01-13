@@ -10,9 +10,9 @@ class DelphiPlayer(Player):
         super().__init__()
         self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
-        self.__depth_limit: int = tree_depth
+        self.depth_limit = tree_depth
         self.player_index: int = 1
-        self.__training: bool = True
+        self.training = True
         self.__previous_board_sum: int = -25
         self.__last_game_player_index = -1
         self.__last_chosen_future = None
@@ -23,8 +23,8 @@ class DelphiPlayer(Player):
         if value >= 0:
             return value
         #check if we are above the tree depth limit
-        if curr_depth >= self.__depth_limit:
-            return self.__oracle.advantage(board, current_player)
+        if curr_depth >= self.depth_limit:
+            return self.oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
         for b in future_boards:
@@ -40,8 +40,8 @@ class DelphiPlayer(Player):
         if value >= 0:
             return value
         #check if we are above the tree depth limit
-        if curr_depth >= self.__depth_limit:
-            return self.__oracle.advantage(board, current_player)
+        if curr_depth >= self.depth_limit:
+            return self.oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
         for b in future_boards:
@@ -86,7 +86,7 @@ class DelphiPlayer(Player):
             self.__last_chosen_future = chosen_future
             return
         self.__previous_board_sum = new_board_sum
-        if not self.__training:                             # clean up and exit if not in training mode
+        if not self.training:                             # clean up and exit if not in training mode
             self.__episode = []
             return
         self.train_oracle(self.__last_game_player_index, 'Win' if self.__is_winning_future(self.__last_chosen_future) else 'Loss')
@@ -95,16 +95,28 @@ class DelphiPlayer(Player):
 
     def train_oracle(self, player: Literal[0, 1, 'O', 'X'], outcome: Outcome) -> None:
         """at the end of a game, gives feedback to the oracle"""
-        self.__oracle.feedback(self.__episode, player, outcome)
+        self.oracle.feedback(self.__episode, player, outcome)
         self.__episode = []
 
-    def get_oracle(self) -> Oracle:
-        """returns the oracle"""
+    @property
+    def oracle(self) -> Oracle:
         return self.__oracle
 
-    def set_depth_limit(self, depth: int) -> None:
-        if isinstance(depth, int) and depth > 0:
-            self.__depth_limit = depth
+    @property
+    def depth_limit(self) -> int:
+        return self.__depth_limit
 
-    def set_training(self, train: bool) -> None:
-        self.__training = train
+    @depth_limit.setter
+    def depth_limit(self, depth_limit: int) -> None:
+        if not isinstance(depth_limit, int) and depth_limit > 0:
+            raise ValueError(f'{type(depth_limit) =}, {depth_limit =}')
+        self.__depth_limit = depth_limit
+
+    @property
+    def training(self) -> bool:
+        return self.__training
+
+    @training.setter
+    def training(self, training: bool) -> None:
+        # TODO: if setting to false clear cached boards and forecasts
+        self.__training = training
