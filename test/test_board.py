@@ -76,3 +76,8 @@ def test_lines():
 
     for actual_line, expected_line in zip(actual, expected):
         assert (actual_line == expected_line).all()
+
+def test_symmetries():
+    assert board_1.symmetries == set()
+    assert board_2.symmetries == set()
+    assert board_3.symmetries == set()

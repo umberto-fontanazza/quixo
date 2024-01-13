@@ -4,7 +4,9 @@ from src.position import Position, CORNERS, BORDERS
 from typing import Literal, Annotated
 from copy import deepcopy
 from numpy.typing import NDArray
+from src.symmetry import Symmetry
 import numpy as np
+
 
 PlayerID = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
@@ -16,6 +18,20 @@ class Board():
     @property
     def ndarray(self) -> NDArray[np.int8]:
         return deepcopy(self.__board)
+
+    @property
+    def symmetries(self) -> set[Symmetry]:
+        matrix = self.__board
+        _symmetries: set[Symmetry] = set()
+        if np.array_equal(matrix, np.flipud(matrix)):
+            _symmetries.add(Symmetry.HORIZONTAL)
+        if np.array_equal(matrix, np.fliplr(matrix)):
+            _symmetries.add(Symmetry.VERTICAL)
+        if np.array_equal(matrix, matrix.T):
+            _symmetries.add(Symmetry.DIAGONAL)
+        if np.array_equal(matrix, np.rot90(np.rot90(matrix).T, -1)):
+            _symmetries.add(Symmetry.ANTIDIAGONAL)
+        return _symmetries
 
     @staticmethod
     def random() -> Board:
@@ -123,7 +139,7 @@ class Board():
         _lines += [arr.diagonal()]
         _lines += [arr[::-1].diagonal()]
         return _lines
-    
+
     @staticmethod
     def check_for_terminal_conditions(board: Board, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
