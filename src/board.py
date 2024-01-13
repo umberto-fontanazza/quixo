@@ -48,13 +48,15 @@ class Board():
         b[b == -3] = 0
         return b
 
-    def list_moves(self, current_player: Literal[0, 1, 'O', 'X'], shuffle = True) -> list[tuple[Position, Move]]:
+    def list_moves(self, current_player: Literal[0, 1, 'O', 'X'], shuffle = True, filter_out_symmetrics = False) -> list[tuple[Position, Move]]:
         """returns all the possible moves given a Game object
             that is, a list of tuples (Position, Move)"""
         current_player = 0 if current_player == 0 or current_player == 'O' else 1
         legal_moves = []
         board = self.__board
-        for position in BORDERS:
+        symmetry_axes = self.symmetries if filter_out_symmetrics else set()
+        explorable_position = Position.filter_out_symmetrics(BORDERS, symmetry_axes)
+        for position in explorable_position:
             if board[position.as_tuple()] != -1 and board[position.as_tuple()] != current_player:
                 continue # it belongs to the opponent, ignore
             slides: list[Move] = position.slides

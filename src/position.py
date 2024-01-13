@@ -1,7 +1,7 @@
 from __future__ import annotations
 from lib.game import Move
 from src.symmetry import Symmetry
-from typing import Literal
+from typing import Literal, Iterable
 from itertools import product
 from dataclasses import dataclass
 
@@ -57,6 +57,15 @@ class Position():
 
     def as_tuple(self):
         return (self.axis_0, self.axis_1)
+
+    @staticmethod
+    def filter_out_symmetrics(positions: Iterable[Position], axes: Iterable[Symmetry]) -> set[Position]:
+        filtered_positions: set[Position] = set()
+        for position in positions:
+            if any(position.symmetric(axis) in filtered_positions for axis in axes):
+                continue # symmetric already present
+            filtered_positions.add(position)
+        return filtered_positions
 
 CORNERS: list[Position] = [Position(x, y) for x, y in product((0, 4), (0, 4))]
 BORDERS: list[Position] = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
