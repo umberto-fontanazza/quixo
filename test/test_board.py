@@ -1,6 +1,7 @@
 from lib.game import Move
 from src.board import Board
 from src.position import Position
+from src.symmetry import Symmetry
 from test.example_boards import board_1, board_2, board_3, example_boards
 from itertools import product
 from numpy import all, array
@@ -81,3 +82,4 @@ def test_symmetries():
     assert board_1.symmetries == set()
     assert board_2.symmetries == set()
     assert board_3.symmetries == set()
+    assert Board().symmetries == {s for s in Symmetry}
