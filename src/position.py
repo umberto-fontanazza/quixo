@@ -55,14 +55,20 @@ class Position():
         if axis == Symmetry.ANTIDIAGONAL:
             return Position(4 - self.axis_1, 4 - self.axis_0)
 
+    def symmetrics(self, axes: Iterable[Symmetry]) -> set[Position]:
+        """Returns a set containing self and its symmetrics"""
+        return {self.symmetric(axis) for axis in axes} | {self}
+
     def as_tuple(self):
         return (self.axis_0, self.axis_1)
 
+    # TODO: warning, it's bugged
     @staticmethod
     def filter_out_symmetrics(positions: Iterable[Position], axes: Iterable[Symmetry]) -> set[Position]:
         filtered_positions: set[Position] = set()
         for position in positions:
-            if any(position.symmetric(axis) in filtered_positions for axis in axes):
+            symmetrics = position.symmetrics(axes)
+            if any(symmetric in filtered_positions for symmetric in symmetrics):
                 continue # symmetric already present
             filtered_positions.add(position)
         return filtered_positions
