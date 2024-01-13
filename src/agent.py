@@ -3,7 +3,7 @@ from src.board import Board, Outcome
 from src.position import Position
 from lib.game import Game, Move, Player
 from typing import Literal
-from src.simple_agents import BetterRandomPlayer
+from src.simple_agents import BetterRandomPlayer, CleverPlayer
 
 class DelphiPlayer(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -11,7 +11,11 @@ class DelphiPlayer(Player):
         self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
         self.__depth_limit: int = tree_depth
-        self.player_index = None
+        self.player_index: int = 1
+        self.__training: bool = True
+        self.__previous_board_sum: int = -25
+        self.__last_game_player_index = -1
+        self.__last_chosen_future = None
 
     def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
@@ -63,98 +67,44 @@ class DelphiPlayer(Player):
         future_boards: list[Board] = [board.move(move, current_player) for move in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, self.player_index), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])
+        self.__autotrain_oracle(board, chosen_move)
         self.__episode.append(chosen_move[0])
         return chosen_move[2]
 
-    def train_oracle(self, outcome: Outcome) -> None:
+    def __is_winning_future(self, future: tuple[Board, float, tuple[Position, Move]]) -> bool:
+        """checks if the future position is a winning state"""
+        if Board.check_for_terminal_conditions(future[0], self.__last_game_player_index) == 100:
+            return True
+        return False
+
+    def __autotrain_oracle(self, board: Board, chosen_future: tuple[Board, float, tuple[Position, Move]]) -> None:
+        """caveat: does not work if the opponent made the agent win"""
+        self.__last_game_player_index = self.player_index if self.__last_game_player_index == -1 else self.__last_game_player_index
+        new_board_sum = board.ndarray.sum()
+        if new_board_sum > self.__previous_board_sum:       # exit if it is the normal course of events (match not ended)
+            self.__previous_board_sum = new_board_sum
+            self.__last_chosen_future = chosen_future
+            return
+        self.__previous_board_sum = new_board_sum
+        if not self.__training:                             # clean up and exit if not in training mode
+            self.__episode = []
+            return
+        self.train_oracle(self.__last_game_player_index, 'Win' if self.__is_winning_future(self.__last_chosen_future) else 'Loss')
+        self.__last_game_player_index = self.player_index   # update parameters
+        self.__last_chosen_future = chosen_future
+
+    def train_oracle(self, player: Literal[0, 1, 'O', 'X'], outcome: Outcome) -> None:
         """at the end of a game, gives feedback to the oracle"""
-        player = None # TODO: fill this variable
-        self.__oracle.feedback(self.__episode, self.player_index, outcome)
+        self.__oracle.feedback(self.__episode, player, outcome)
         self.__episode = []
 
     def get_oracle(self) -> Oracle:
         """returns the oracle"""
         return self.__oracle
 
-# TODO: remove this
-if __name__ == '__main__':
-    # used for testing
-    g = Game()
+    def set_depth_limit(self, depth: int) -> None:
+        if isinstance(depth, int) and depth > 0:
+            self.__depth_limit = depth
 
-    # informal tests
-    if False:
-        b = g.get_board()
-        for s in BORDERS:
-            b[s] = 0
-        b[1,0] = 1
-        print(b)
-        print(len(moves(b, 1)))
-
-    if False:
-        b = random_board()
-        move: tuple[Position, Move] = ((0, 3), Move.BOTTOM)
-        b_after = dp._apply_move(b, move, 1)
-        print(f'{b}\n\n{b_after}\n\n')
-
-        import numpy
-        b = numpy.array([0] + [1] * 24).reshape((5,5))
-        p = moves(b, 0)
-        #print(p)
-
-        b = numpy.array([1] * 24 + [0]).reshape((5,5))
-        b_after = dp._apply_move(b, ((4,3), Move.LEFT), 0)
-        print(f'\n\n{b_after}\n\n')
-        b = numpy.array([1] * 25).reshape((5,5))
-        b_after = dp._apply_move(b, ((3,4), Move.LEFT), 0)
-        print(f'\n\n{b_after}\n\n')
-        b_after[3, 0] = 1
-        b_after[0, 1] = 0
-        print(f'{b_after}\n\n')
-
-
-        b = numpy.array([1] * 24 + [0]).reshape((5,5))
-        p = moves(b, 0)
-        #print(p)
-
-    if False:
-        print(dp.make_move(g))
-
-    if True:
-        from copy import deepcopy
-
-        N_ADVISORS = 4
-        initial_weights = ([1.0] * N_ADVISORS)
-        player = DelphiPlayer(tree_depth=3, oracle_weights= initial_weights)
-        player1 = BetterRandomPlayer()
-
-        all_weights = []
-        wins, loses = 0, 0
-        for _ in range(1000):
-            g.play(player1, player)
-            won = g.check_winner() == 1
-            print(won)
-            if won:
-                won += 1
-            else:
-                loses += 1    
-            player.train_oracle('Win' if won else 'Loss')
-            all_weights.append(deepcopy(initial_weights))
-        print()    
-        for _ in range(1000):
-            g.play(player1, player)
-            won = g.check_winner() == 0
-            print(won)
-            if won:
-                won += 1
-            else:
-                loses += 1 
-            player.train_oracle('Win' if won else 'Loss')
-            all_weights.append(deepcopy(initial_weights))
-        print(all_weights)
-        print(wins, loses)
-
-    if False:
-        b = random_board()
-        print(b)
-        print(compact_board(b,'X'))
-
+    def set_training(self, train: bool) -> None:
+        self.__training = train
