@@ -59,9 +59,9 @@ def compact_board(board: Board, player: PlayerID) -> float:
                     if arr[pos1] == 0:
                         count_o  = count_o + 1
     if player == 'X' or player == 1:
-        return count_x * 100 / (count_x + count_o)
+        return (count_x + 1) * 100 / (count_x + count_o + 2)
     elif player == 'O' or player == 0:
-        return count_o * 100 / (count_x + count_o)
+        return (count_o + 1) * 100 / (count_x + count_o + 2)
 
 def is_legal(pos: tuple) -> bool:
     """utility func for compact_board"""
