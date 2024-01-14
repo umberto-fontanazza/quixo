@@ -26,24 +26,19 @@ def main():
             wins += 1
         else:
             losses+=1
-    print('clever v random:', wins, losses)
-
-    # match vs human
-    """oracle_player = DelphiPlayer(tree_depth=3)
-    human_player = ManualPlayer()
-    g = Game()
-    print(g.play(human_player, oracle_player))
-    human_player.print_pretty_board(g)"""
+    print('clever v random:', wins, losses, '\n')
 
     opponent = CleverPlayer()
-    oracle_player = DelphiPlayer()
-    for depth in range(1, 5):                            #try some different depths, from 1 to 5
+    oracle_player = DelphiPlayer()                       # keep weights learned before
+    for depth in range(1, 5):                            # try some different depths, from 1 to 5
         oracle_player.depth_limit = depth
         #oracle_player.training = False
+        g = Game()
         players = [oracle_player, opponent]
         starting = 0
         wins, losses = 0, 0
-        for _ in tqdm(range(N_GAMES)):
+        for _ in range(N_GAMES):
+            print('+', end='')
             g = Game()
             winner_idx = g.play(players[starting], players[1-starting])
             agent_won = winner_idx == 0 and starting == 0
@@ -51,8 +46,17 @@ def main():
                 wins += 1
             else:
                 losses += 1
-        print('depth', depth, ':', wins, losses)
+        print('\ndepth', depth, ':', wins, losses, '\n')
         starting = 1 if starting == 0 else 0
+
+    # match vs human
+    """
+    # oracle_player.depth_limit = 4
+    human_player = ManualPlayer()
+    g = Game()
+    print(g.play(human_player, oracle_player))
+    human_player.print_pretty_board(g)
+    """
 
 if __name__ == '__main__':
     main()

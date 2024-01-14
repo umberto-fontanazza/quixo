@@ -14,17 +14,16 @@ class CleverPlayer(Player):
     def choose_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         board: Board = Board(game.get_board())
         current_player = 1 if game.get_current_player() else 0
-        moves = board.list_moves(current_player)
-        cooked_moves = []
-        for move in moves:
-            # TODO: why is the next line inside a loop?
-            terminal_value = board.check_for_terminal_conditions(current_player)
+        moves =  board.list_moves(current_player, filter_out_symmetrics=True)
+        future_boards = [board.move(move, current_player) for move in moves]
+        cooked_moves = []                                                       #will contain moves that do not make you lose
+        for future_board, move in zip(future_boards, moves):
+            terminal_value = future_board.check_for_terminal_conditions(current_player)
             if terminal_value == 100:
                 return ((move[0][1], move[0][0]), move[1])
             elif terminal_value == -1:
                 cooked_moves.append(move)
         chosen_move = choice(cooked_moves) if len(cooked_moves) != 0 else choice(moves)
-        #need to invert from the numpy indexing to the game indexing (rows vs columns)
         return ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore
 
 class BetterRandomPlayer(Player):
