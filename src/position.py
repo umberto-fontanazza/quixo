@@ -51,9 +51,15 @@ class Position():
         if axis == Symmetry.VERTICAL:
             return Position(self.axis_0, 4 - self.axis_1)
         if axis == Symmetry.DIAGONAL:
-            return Position(self.axis_1, self.axis_0)
+            return Position(self.axis_1, self.axis_0)                   # ok, it is the transposed
         if axis == Symmetry.ANTIDIAGONAL:
-            return Position(4 - self.axis_1, 4 - self.axis_0)
+            return Position(4 - self.axis_1, 4 - self.axis_0)           # ok
+        if axis == Symmetry.ROT90:
+            return Position(4 - self.axis_1, self.axis_0)               # ok -> np.rot90 rotates counterclockwise
+        if axis == Symmetry.ROT180:
+            return Position(4 - self.axis_0, 4 - self.axis_1)
+        if axis == Symmetry.ROT270:
+            return Position(self.axis_1, 4 - self.axis_0)
 
     def symmetrics(self, axes: Iterable[Symmetry]) -> set[Position]:
         """Returns a set containing self and its symmetrics"""
