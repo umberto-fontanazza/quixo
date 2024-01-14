@@ -14,7 +14,7 @@ class CleverPlayer(Player):
     def choose_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         board: Board = Board(game.get_board())
         current_player = 1 if game.get_current_player() else 0
-        moves = boardcopy.list_moves(current_player)               # type: ignore
+        moves = board.list_moves(current_player)
         cooked_moves = []
         for move in moves:
             # TODO: why is the next line inside a loop?
