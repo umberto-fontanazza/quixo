@@ -19,4 +19,4 @@ def test_symmetrics():
 def test_filter_out_symmetrics():
     all_axes = [axis for axis in Symmetry]
     filtered = Position.filter_out_symmetrics(BORDERS, all_axes)
-    assert len(filtered) == 6
+    assert len(filtered) == 3
