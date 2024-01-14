@@ -13,8 +13,8 @@ class CleverPlayer(Player):
 
     def choose_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         board: Board = Board(game.get_board())
-        current_player = game.get_current_player()
-        possible_moves = boardcopy.list_moves(current_player)               # type: ignore
+        current_player = 1 if game.get_current_player() else 0
+        moves = boardcopy.list_moves(current_player)               # type: ignore
         cooked_moves = []
         for move in moves:
             # TODO: why is the next line inside a loop?
@@ -40,7 +40,7 @@ class BetterRandomPlayer(Player):
         chosen_move = choice(Board(game.get_board()).list_moves(current_player = game.get_current_player())) #type: ignore
         #need to invert from the numpy indexing to the game indexing (rows vs columns)
         return  ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore
-    
+
 
 class ManualPlayer(Player):
     """Random Player class that should not get stuck in infinite stochastic loops"""
@@ -50,7 +50,7 @@ class ManualPlayer(Player):
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """needed by the library to interface"""
         return self.choose_move(game)
-    
+
     def print_pretty_board(self, game: Game) -> None:
         boardcopy = game.get_board()
         stringy_board = [['❌' if elem == 1 else '⭕️' if elem == 0 else '⬜️' for elem in row] for row in boardcopy]
@@ -69,4 +69,4 @@ class ManualPlayer(Player):
             if move_index < len(available_moves) and move_index >= 0:
                 ok = True
         chosen_move = available_moves[move_index] #type: ignore
-        return  ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore    
+        return  ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore
