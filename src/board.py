@@ -132,7 +132,7 @@ class Board():
         return _lines
 
     @staticmethod
-    def check_for_terminal_conditions(board: Board, current_player: PlayerID ) -> int:
+    def check_for_terminal_conditions(self, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
             if no one won, returns -1"""
         winners: set[PlayerID] = board.check_winners()

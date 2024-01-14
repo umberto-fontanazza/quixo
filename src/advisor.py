@@ -43,7 +43,7 @@ def available_moves_majority(board: Board, player: PlayerID) -> float:
     raise ValueError(f'{player =} is not valid')
 
 def compact_board(board: Board, player: PlayerID) -> float:
-    """counts the O close to others O and the X close to others X and returns a weighted difference"""
+    """counts the O close to others O and the X close to others X and returns a score"""
     count_x = 0
     count_o = 0
     arr = board.ndarray
@@ -57,6 +57,29 @@ def compact_board(board: Board, player: PlayerID) -> float:
             for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
                 if is_legal(pos1):
                     if arr[pos1] == 0:
+                        count_o  = count_o + 1
+    if count_o == 0 and count_x == 0:
+        return 50
+    if player == 'X' or player == 1:
+        return (count_x) * 100 / (count_x + count_o)
+    elif player == 'O' or player == 0:
+        return (count_o) * 100 / (count_x + count_o)
+
+def more_disturbing_pieces(board: Board, player: PlayerID) -> float:
+    """counts the O close to X and the X close to O and returns a score"""
+    count_x = 0
+    count_o = 0
+    arr = board.ndarray
+    for pos in [(x, y) for x in range(5) for y in range(5)]:
+        if arr[pos] == 1:
+            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
+                if is_legal(pos1):
+                    if arr[pos1] == 0:
+                        count_x = count_x + 1
+        elif arr[pos] == 0:
+            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
+                if is_legal(pos1):
+                    if arr[pos1] == 1:
                         count_o  = count_o + 1
     if count_o == 0 and count_x == 0:
         return 50
@@ -79,5 +102,6 @@ ALL_ADVISORS: list[Advisor] = [
     line_majority,
     compact_board,
     available_moves_majority,
-    board_majority
+    board_majority,
+    more_disturbing_pieces
 ]
