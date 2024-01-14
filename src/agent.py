@@ -1,9 +1,8 @@
 from src.oracle import Oracle
-from src.board import Board, Outcome
+from src.board import Board, PlayerID
 from src.position import Position
 from lib.game import Game, Move, Player
 from typing import Literal
-from src.simple_agents import BetterRandomPlayer, CleverPlayer
 
 class DelphiPlayer(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -11,13 +10,13 @@ class DelphiPlayer(Player):
         self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
         self.depth_limit = tree_depth
-        self.player_index: int = 1
+        self.player_index: PlayerID = 1
         self.training = True
         """         self.__previous_board_sum: int = -25
         self.__last_game_player_index = -1
         self.__last_chosen_future = None """
 
-    def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
+    def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
         value = board.check_for_terminal_conditions(current_player)
         if value >= 0:
@@ -34,7 +33,7 @@ class DelphiPlayer(Player):
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
         return alpha
 
-    def __min(self, board: Board, current_player: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
+    def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
         #check if the board is a terminal condition
         value = board.check_for_terminal_conditions(current_player)
         if value >= 0:
