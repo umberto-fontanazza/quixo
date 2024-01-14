@@ -19,7 +19,7 @@ class DelphiPlayer(Player):
 
     def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
-        value = Board.check_for_terminal_conditions(board, current_player)
+        value = board.check_for_terminal_conditions(current_player)
         if value >= 0:
             return value
         #check if we are above the tree depth limit
@@ -36,7 +36,7 @@ class DelphiPlayer(Player):
 
     def __min(self, board: Board, current_player: Literal[0,1], alpha: float = 0.0, curr_depth: int = 1) -> float:
         #check if the board is a terminal condition
-        value = Board.check_for_terminal_conditions(board, current_player)
+        value = board.check_for_terminal_conditions(current_player)
         if value >= 0:
             return value
         #check if we are above the tree depth limit
@@ -73,7 +73,8 @@ class DelphiPlayer(Player):
 
     def __is_winning_future(self, future: tuple[Board, float, tuple[Position, Move]]) -> bool:
         """checks if the future position is a winning state"""
-        if Board.check_for_terminal_conditions(future[0], self.__last_game_player_index) == 100:
+        board, _, __ = future
+        if board.check_for_terminal_conditions(self.__last_game_player_index) == 100:
             return True
         return False
 

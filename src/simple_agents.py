@@ -12,17 +12,18 @@ class CleverPlayer(Player):
         return self.choose_move(game)
 
     def choose_move(self, game: Game) -> tuple[tuple[int, int], Move]:
-        boardcopy: Board = Board(game.get_board())
+        board: Board = Board(game.get_board())
         current_player = game.get_current_player()
-        possible_moves = boardcopy.list_moves(current_player)
+        moves = board.list_moves(current_player)
         cooked_moves = []
-        for move in possible_moves:
-            terminal_value = Board.check_for_terminal_conditions(boardcopy, current_player)
+        for move in moves:
+            # TODO: why is the next line inside a loop?
+            terminal_value = board.check_for_terminal_conditions(current_player)
             if terminal_value == 100:
                 return ((move[0][1], move[0][0]), move[1])
             elif terminal_value == -1:
                 cooked_moves.append(move)
-        chosen_move = choice(cooked_moves) if len(cooked_moves) != 0 else choice(possible_moves)
+        chosen_move = choice(cooked_moves) if len(cooked_moves) != 0 else choice(moves)
         #need to invert from the numpy indexing to the game indexing (rows vs columns)
         return ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore
 
