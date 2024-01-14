@@ -144,7 +144,7 @@ class Board():
     def check_for_terminal_conditions(self, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
             if no one won, returns -1"""
-        winners = self.check_winners()
+        winners: set[PlayerID] = self.check_winners()
         opponent = 0 if current_player == 1 else 1
         if opponent in winners:
             return 0
