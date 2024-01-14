@@ -47,9 +47,9 @@ class Position():
 
     def symmetric(self, axis: Symmetry) -> Position:
         if axis == Symmetry.HORIZONTAL:
-            return Position(self.axis_0, 4 - self.axis_1)
-        if axis == Symmetry.VERTICAL:
             return Position(4 - self.axis_0, self.axis_1)
+        if axis == Symmetry.VERTICAL:
+            return Position(self.axis_0, 4 - self.axis_1)
         if axis == Symmetry.DIAGONAL:
             return Position(self.axis_1, self.axis_0)
         if axis == Symmetry.ANTIDIAGONAL:
