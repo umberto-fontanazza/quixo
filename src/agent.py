@@ -27,8 +27,8 @@ class DelphiPlayer(Player):
             return self.oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        for b in future_boards:
-            tmp = self.__min(b, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
+        for board in future_boards:
+            tmp = self.__min(board, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
@@ -44,8 +44,8 @@ class DelphiPlayer(Player):
             return self.oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        for b in future_boards:
-            tmp = self.__max(b, self.player_index, beta, curr_depth + 1)
+        for board in future_boards:
+            tmp = self.__max(board, self.player_index, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
             beta = tmp if tmp < beta else beta                      # update beta with the smallest value found so far
@@ -74,7 +74,8 @@ class DelphiPlayer(Player):
     def __is_winning_future(self, future_board: Board) -> bool:
         """checks if the future position is a winning state"""
         player = self.__last_game_player_index
-        return player in future_board.check_winners()
+        winners = future_board.check_winners()
+        return player in winners and len(winners) == 1
 
     def __autotrain_oracle(self, board: Board, next_board: Board, move_score: float, move: tuple[Position, Move]) -> None:
         """caveat: does not work if the opponent made the agent win"""
