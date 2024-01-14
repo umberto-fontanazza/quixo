@@ -25,3 +25,12 @@ oracle training:
 
 # ideas
 saving in the state just the border cells and the two diagonals makes the problem tractable with reinforcement learning
+
+# TODO:
+    - refactor agent.__train()
+    - add oracle.save(), oracle.load(file)
+    - consider @cache for various classes (speedup)
+    - kill repeated calculations for advisors
+    - multithreading?
+    - separate rotations from symmetry axes
+    - shut off rules with low incidence to speed up oracle predictions
