@@ -98,6 +98,12 @@ class Board():
                 _winners.add(line[0])
         return _winners
 
+    def only_winner(self, player: PlayerID) -> bool:
+        winners = self.check_winners()
+        if len(winners) == 1 and player in winners:
+            return True
+        return False
+
     def move(self, move: tuple[Position, Move], current_player: Literal[0, 1, 'X', 'O']) -> Board:
         """applies move to the board - out of place"""
         current_player = 1 if current_player == 1 or current_player == 'X' else 0
@@ -131,6 +137,10 @@ class Board():
         _lines += [arr[::-1].diagonal()]
         return _lines
 
+    @property
+    def is_empty(self):
+        return np.array_equal(self.ndarray, Board().ndarray)
+
     def check_for_terminal_conditions(self, current_player: Literal[0,1] ) -> int:
         """given a terminal state board, return a valid minmax value
             if no one won, returns -1"""
@@ -141,3 +151,7 @@ class Board():
         if current_player in winners:
             return 100
         return -1
+
+    @property
+    def min_played_moves(self) -> int:
+        return (self.ndarray != Board().ndarray).sum()

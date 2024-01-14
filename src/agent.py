@@ -13,9 +13,9 @@ class DelphiPlayer(Player):
         self.depth_limit = tree_depth
         self.player_index: int = 1
         self.training = True
-        self.__previous_board_sum: int = -25
+        """         self.__previous_board_sum: int = -25
         self.__last_game_player_index = -1
-        self.__last_chosen_future = None
+        self.__last_chosen_future = None """
 
     def __max(self, board: Board, current_player: Literal[0,1], beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
@@ -61,24 +61,35 @@ class DelphiPlayer(Player):
     def choose_move(self, game: Game) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
         current_player: Literal[0, 1] = game.get_current_player() # type: ignore
-        self.player_index = current_player
+        self.player_index, opponent = current_player, 1 - current_player
         board = Board(game.get_board())
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)
         future_boards = [board.move(move, current_player) for move in moves]
         scores = [self.__min(board, current_player) for board in future_boards]
-        chosen_move, next_board, max_score = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
-        self.__autotrain_oracle(board, next_board, max_score, chosen_move)
-        self.__episode.append(next_board)
+        chosen_move, next_board, _ = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
+        if self.training:
+            self.__train(board, next_board, current_player, opponent)
         return chosen_move
 
-    def __is_winning_future(self, future_board: Board) -> bool:
-        """checks if the future position is a winning state"""
+    def __train(self, board: Board, next_board: Board, current_player, opponent) -> None:
+        if not board.is_empty and (not (len(self.__episode) == 0 and board.min_played_moves > 1)):
+            self.__episode.append(board)
+        if not (len(self.__episode) == 0 and board.min_played_moves > 2):
+            self.__episode.append(next_board)
+        if next_board.only_winner(current_player):
+            # leaving the last one out because it's a trivial prediction
+            self.oracle.feedback(self.__episode[:-1], current_player, 'Win')
+            self.__episode = []
+        if any([next_board.move(move, opponent).only_winner(opponent) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
+            self.oracle.feedback(self.__episode, current_player, 'Loss')
+            self.__episode = []
+
+    """     def __is_winning_future(self, future_board: Board) -> bool:
         player = self.__last_game_player_index
         winners = future_board.check_winners()
         return player in winners and len(winners) == 1
 
     def __autotrain_oracle(self, board: Board, next_board: Board, move_score: float, move: tuple[Position, Move]) -> None:
-        """caveat: does not work if the opponent made the agent win"""
         self.__last_game_player_index = self.player_index if self.__last_game_player_index == -1 else self.__last_game_player_index
         new_board_sum = board.ndarray.sum()
         if new_board_sum > self.__previous_board_sum:       # exit if it is the normal course of events (match not ended)
@@ -94,9 +105,8 @@ class DelphiPlayer(Player):
         self.__last_chosen_future = move, next_board, move_score
 
     def train_oracle(self, player: Literal[0, 1, 'O', 'X'], outcome: Outcome) -> None:
-        """at the end of a game, gives feedback to the oracle"""
         self.oracle.feedback(self.__episode, player, outcome)
-        self.__episode = []
+        self.__episode = [] """
 
     @property
     def oracle(self) -> Oracle:

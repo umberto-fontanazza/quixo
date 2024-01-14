@@ -83,3 +83,6 @@ def test_symmetries():
     assert board_2.symmetries == set()
     assert board_3.symmetries == set()
     assert Board().symmetries == {s for s in Symmetry}
+
+def test_min_played_moves():
+    assert board_1.min_played_moves == 7
