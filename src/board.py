@@ -31,6 +31,12 @@ class Board():
             _symmetries.add(Symmetry.DIAGONAL)
         if np.array_equal(matrix, np.rot90(np.rot90(matrix).T, -1)):
             _symmetries.add(Symmetry.ANTIDIAGONAL)
+        if np.array_equal(matrix, np.rot90(matrix, k=1)):
+            _symmetries.add(Symmetry.ROT90)
+        if np.array_equal(matrix, np.rot90(matrix, k=2)):
+            _symmetries.add(Symmetry.ROT180)
+        if np.array_equal(matrix, np.rot90(matrix, k=3)):
+            _symmetries.add(Symmetry.ROT270)
         return _symmetries
 
     @staticmethod

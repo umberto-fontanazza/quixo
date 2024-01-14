@@ -26,7 +26,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
         alpha = 0.0                                                 # smallest oracle value
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
+        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
         for b in future_boards:
             tmp = self.__min(b, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
@@ -43,7 +43,7 @@ class DelphiPlayer(Player):
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
         beta = 100.0                                                # largest oracle value
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True)]
+        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
         for b in future_boards:
             tmp = self.__max(b, self.player_index, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
@@ -63,7 +63,7 @@ class DelphiPlayer(Player):
         current_player: Literal[0, 1] = game.get_current_player() # type: ignore
         self.player_index = current_player
         board = Board(game.get_board())
-        moves: list[tuple[Position, Move]] =  board.list_moves(current_player)
+        moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)
         future_boards: list[Board] = [board.move(move, current_player) for move in moves]
         evaluated: list[tuple[Board, float, tuple[Position, Move]]] = [(b, self.__min(b, self.player_index), p) for b, p in zip(future_boards, moves)]
         chosen_move: tuple[Board, float, tuple[Position, Move]] = max(evaluated, key = lambda move_qual: move_qual[1])

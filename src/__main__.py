@@ -30,9 +30,9 @@ def main():
         else:
             losses+=1
     print('clever v random:', wins, losses)
-    for depth in range(1, 6):                            #try some different depths, from 1 to 5
+    for depth in range(1, 5):                            #try some different depths, from 1 to 5
         oracle_player = DelphiPlayer(tree_depth=depth)
-        #oracle_player.set_training(False)
+        #oracle_player.training = False
         players = [oracle_player, opponent]
         starting = 0
         wins, losses = 0, 0
