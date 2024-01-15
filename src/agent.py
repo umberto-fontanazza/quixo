@@ -2,6 +2,7 @@ from src.oracle import Oracle
 from src.board import Board, PlayerID
 from src.position import Position
 from lib.game import Game, Move, Player
+from joblib import Parallel, delayed
 from typing import Literal
 
 class DelphiPlayer(Player):
@@ -32,6 +33,10 @@ class DelphiPlayer(Player):
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
         return alpha
+    
+    def compute_score(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
+        """wrapper for multithreading the min function"""
+        return self.__min(board, current_player, alpha, curr_depth)
 
     def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
         #check if the board is a terminal condition
@@ -52,19 +57,22 @@ class DelphiPlayer(Player):
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
-        position, slide = self.choose_move(game)
+        position, slide = self.choose_move(game, use_multithreading = True)
         position = position.as_tuple()
         position = (position[1], position[0])
         return position, slide
 
-    def choose_move(self, game: Game) -> tuple[Position, Move]:
+    def choose_move(self, game: Game, use_multithreading: bool) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
         current_player: Literal[0, 1] = game.get_current_player() # type: ignore
         self.player_index, opponent = current_player, 1 - current_player
         board = Board(game.get_board())
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)
         future_boards = [board.move(move, current_player) for move in moves]
-        scores = [self.__min(board, current_player) for board in future_boards]
+        if not use_multithreading:      # standard minmax
+            scores: list[float] = [self.__min(board, current_player) for board in future_boards]
+        else:
+            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in future_boards)    #type: ignore
         chosen_move, next_board, _ = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
         if self.training:
             self.__train(board, next_board, current_player, opponent)

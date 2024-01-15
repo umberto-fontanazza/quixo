@@ -2,6 +2,7 @@ from src.position import Position
 from lib.game import Game, Move
 from src.simple_agents import BetterRandomPlayer, CleverPlayer, ManualPlayer
 from src.agent import DelphiPlayer
+from time import time
 
 def main():
     from tqdm import tqdm
@@ -31,6 +32,7 @@ def main():
     opponent = CleverPlayer()
     oracle_player = DelphiPlayer()                       # keep weights learned before
     for depth in range(1, 5):                            # try some different depths, from 1 to 5
+        t_0 = time()
         oracle_player.depth_limit = depth
         #oracle_player.training = False
         g = Game()
@@ -46,8 +48,10 @@ def main():
                 wins += 1
             else:
                 losses += 1
-        print('\ndepth', depth, ':', wins, losses, '\n')
-        starting = 1 if starting == 0 else 0
+            starting = 1 -starting
+        t_1 = int(time() - t_0)
+        unit = 'second(s)' if t_1 < 120 else 'minutes'
+        print(f'depth {depth}: {wins} {losses}\t\t({t_1 if t_1 < 120 else t_1 / 60} in {unit} )\n')
 
     # match vs human
     """
