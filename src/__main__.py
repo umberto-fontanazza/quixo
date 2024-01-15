@@ -51,7 +51,7 @@ def main():
             starting = 1 -starting
         t_1 = int(time() - t_0)
         unit = 'second(s)' if t_1 < 120 else 'minutes'
-        print(f'depth {depth}: {wins} {losses}\t\t({t_1 if t_1 < 120 else t_1 / 60} in {unit} )\n')
+        print(f'\ndepth {depth}: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
 
     # match vs human
     """

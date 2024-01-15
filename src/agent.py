@@ -57,7 +57,7 @@ class DelphiPlayer(Player):
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
-        position, slide = self.choose_move(game, use_multithreading = True)
+        position, slide = self.choose_move(game, use_multithreading = False if self.__depth_limit <= 1 else True)
         position = position.as_tuple()
         position = (position[1], position[0])
         return position, slide
