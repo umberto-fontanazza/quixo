@@ -14,7 +14,7 @@ def test_choose_move():
     with patch('src.oracle.Oracle.advantage', side_effect=mock_oracle_function):
         # Inside this block, calls to src.oracle.Oracle.advantage will use the mock function
         g = Game()
-        result = player.choose_move(g)
+        result = player.choose_move(g, use_multithreading=True)
         board = Board(g.get_board())
         assert result[0][0] >= 0 and result[0][0] <= 4
         assert result[0][1] >= 0 and result[0][1] <= 4
