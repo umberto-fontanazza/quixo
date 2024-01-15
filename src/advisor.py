@@ -7,6 +7,8 @@ Advisor = Callable[[Board, PlayerID], float]
 
 @cache
 def __rule_advantage(o_major: int, x_major: int, player: PlayerID) -> float:
+    if o_major == x_major == 0:
+        return 50
     if player == 'X' or player == 1:
         return x_major * 100 / (o_major + x_major)
     elif player == 'O' or player == 0:
