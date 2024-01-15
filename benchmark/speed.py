@@ -4,6 +4,9 @@ from src.agent import DelphiPlayer
 from lib.game import Game, Player
 from lib.main import RandomPlayer
 from src.simple_agents import CleverPlayer
+from src.advisor import Advisor, ALL_ADVISORS
+from test.example_boards import board_1, board_2, board_3, example_boards
+from itertools import product
 from tqdm import tqdm
 
 def play_game():
@@ -24,9 +27,16 @@ def play_game():
     print('depth', 2, ':', wins, losses)
     starting = 1 if starting == 0 else 0
 
+def benchmark_advisors():
+    for board, advisor in product([board_1, board_2, board_3, *example_boards], ALL_ADVISORS):
+        score = advisor(board, 'X')
+
+
 def main():
     with Profile() as profile:
-        play_game()
+        # play_game()
+        for _ in range(50):
+            benchmark_advisors()
     stats = Stats(profile)
     stats.sort_stats('cumulative')
     stats.print_stats()
