@@ -9,10 +9,12 @@ Advisor = Callable[[Board, PlayerID], float]
 def __rule_advantage(o_major: int, x_major: int, player: PlayerID) -> float:
     if o_major == x_major == 0:
         return 50
-    if player == 'X' or player == 1:
+    elif player == 'X' or player == 1:
         return x_major * 100 / (o_major + x_major)
     elif player == 'O' or player == 0:
         return o_major * 100 / (o_major + x_major)
+    else:
+        return 50
 
 def line_majority_count(board: Board) -> tuple[int, int]:
     """Computes for each player the number of lines (among the 5 rows, 5 cols and 2 diagonals)
