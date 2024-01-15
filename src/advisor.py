@@ -1,10 +1,17 @@
 from typing import Callable
 from src.board import Board, PlayerID
 from numpy import trace, flip
+from functools import cache
 
 Advisor = Callable[[Board, PlayerID], float]
 
-# TODO: this should be a private method but it needs to be imported for testing in test_advisor
+@cache
+def __rule_advantage(o_major: int, x_major: int, player: PlayerID) -> float:
+    if player == 'X' or player == 1:
+        return x_major * 100 / (o_major + x_major)
+    elif player == 'O' or player == 0:
+        return o_major * 100 / (o_major + x_major)
+
 def line_majority_count(board: Board) -> tuple[int, int]:
     """Computes for each player the number of lines (among the 5 rows, 5 cols and 2 diagonals)
     where they have more symbols compared to the opponent"""
@@ -28,19 +35,10 @@ def line_majority_count(board: Board) -> tuple[int, int]:
     return (o_major_lines, x_major_lines)
 
 def line_majority(board: Board, player: PlayerID) -> float:
-    o_major, x_major = line_majority_count(board)
-    if player == 'X' or player == 1:
-        return x_major * 100 / (o_major + x_major)
-    elif player == 'O' or player == 0:
-        return o_major * 100 / (o_major + x_major)
+    return __rule_advantage(*line_majority_count(board), player)
 
 def available_moves_majority(board: Board, player: PlayerID) -> float:
-    o_moves, x_moves = board.count_moves()
-    if player == 'X' or player == 1:
-        return x_moves * 100 / (x_moves + o_moves)
-    elif player == 'O' or player == 0:
-        return o_moves * 100 / (x_moves + o_moves)
-    raise ValueError(f'{player =} is not valid')
+    return __rule_advantage(*board.count_moves(), player)
 
 def compact_board(board: Board, player: PlayerID) -> float:
     """counts the O close to others O and the X close to others X and returns a score"""
@@ -57,13 +55,7 @@ def compact_board(board: Board, player: PlayerID) -> float:
                     count_x += 1
                 elif player == 0:
                     count_o += 1
-
-    if count_o == 0 and count_x == 0:
-        return 50
-    if player == 'X' or player == 1:
-        return (count_x) * 100 / (count_x + count_o)
-    elif player == 'O' or player == 0:
-        return (count_o) * 100 / (count_x + count_o)
+    return __rule_advantage(count_o, count_x, player)
 
 def more_disturbing_pieces(board: Board, player: PlayerID) -> float:
     """counts the O close to X and the X close to O and returns a score"""
@@ -81,12 +73,7 @@ def more_disturbing_pieces(board: Board, player: PlayerID) -> float:
                 if is_legal(pos1):
                     if arr[pos1] == 1:
                         count_o  = count_o + 1
-    if count_o == 0 and count_x == 0:
-        return 50
-    if player == 'X' or player == 1:
-        return (count_x) * 100 / (count_x + count_o)
-    elif player == 'O' or player == 0:
-        return (count_o) * 100 / (count_x + count_o)
+    return __rule_advantage(count_o, count_x, player)
 
 def is_legal(pos: tuple) -> bool:
     """utility func for compact_board"""
@@ -96,7 +83,6 @@ def board_majority(board: Board, player: PlayerID) -> int:
     """advisor based on the difference of placed tiles between the players"""
     total_count: int = int(Board.change_symbols(board.ndarray).sum())
     return total_count * 2 + 50 if player == 1 else 50 - 2 * total_count
-
 
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
