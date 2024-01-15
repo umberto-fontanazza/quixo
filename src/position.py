@@ -65,7 +65,6 @@ class Position():
         if axis == Symmetry.ROT270:
             return Position(self.axis_1, 4 - self.axis_0)
 
-    @cache
     def symmetrics(self, axes: Iterable[Symmetry]) -> set[Position]:
         """Returns a set containing self and its symmetrics"""
         return {self.symmetric(axis) for axis in axes} | {self}

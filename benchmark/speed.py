@@ -34,9 +34,9 @@ def benchmark_advisors():
 
 def main():
     with Profile() as profile:
-        # play_game()
-        for _ in range(100):
-            benchmark_advisors()
+        play_game()
+        # for _ in range(100):
+            # benchmark_advisors()
     stats = Stats(profile)
     stats.sort_stats('cumulative')
     stats.print_stats()
