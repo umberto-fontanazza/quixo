@@ -90,8 +90,8 @@ def board_majority(board: Board, player: PlayerID) -> int:
 
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
-    compact_board,
+    # compact_board,
     available_moves_majority,
-    board_majority,
-    more_disturbing_pieces
+    # board_majority,
+    # more_disturbing_pieces
 ]

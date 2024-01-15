@@ -135,5 +135,18 @@ class DelphiPlayer(Player):
 
     @training.setter
     def training(self, training: bool) -> None:
-        # TODO: if setting to false clear cached boards and forecasts
+        if not training:
+            self.__episode = []
         self.__training = training
+
+    def save(self, filename = 'trained_agent.json'):
+        with open(filename, 'w') as file:
+            file.write(self.to_json())
+
+    def to_json(self) -> str:
+        return self.oracle.to_json()
+
+    @staticmethod
+    def from_json(json_string: str):
+        oracle = Oracle.from_json(json_string)
+        return DelphiPlayer(oracle.weights)

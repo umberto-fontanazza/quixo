@@ -1,5 +1,7 @@
+from __future__ import annotations
 from src.board import Board, PlayerID, Outcome
 from src.advisor import Advisor, ALL_ADVISORS
+from json import dumps, loads
 
 class Oracle():
     def __init__(self, rules: list[Advisor] = ALL_ADVISORS, weights: list[float] | None = None):
@@ -22,11 +24,14 @@ class Oracle():
         shrink_factor = .1
         rule_scores: list[float] = [rule(board, player) for rule in self.__rules]
         rule_success = [self.__is_good_prediction(score, outcome) for score in rule_scores]
-        for success, weight in zip(rule_success, self.__weights):
+        updated_weights = []
+        for success, weight in zip(rule_success, self.weights):
             if success:
-                weight += weight * growth_factor
+                updated_weight = weight * (1 + growth_factor)
             else:
-                weight -= weight * shrink_factor
+                updated_weight = weight * (1 + shrink_factor)
+            updated_weights.append(updated_weight)
+        self.__weights = updated_weights
 
     def feedback(self, board_states: list[Board], player: PlayerID, outcome: Outcome) -> None:
         for board in board_states:
@@ -39,3 +44,15 @@ class Oracle():
             rule_weight = self.__weights[i]
             total_score += rule_score *  rule_weight
         return total_score / sum(self.__weights)
+
+    def to_json(self) -> str:
+        return dumps(self.weights)
+
+    @staticmethod
+    def from_json(json_string: str):
+        data = loads(json_string)
+        return Oracle()
+
+    @property
+    def weights(self):
+        return [weight for weight in self.__weights]
