@@ -1,10 +1,10 @@
-from src.agent import DelphiPlayer
+from src.agent import Agent
 from src.board import Board
 from lib.game import Game, Move
 from unittest.mock import patch
 
 def test_choose_move():
-    player = DelphiPlayer(tree_depth=2)
+    player = Agent(tree_depth=2)
 
     # Define the mock function that will replace src.agent.Oracle.advantage
     def mock_oracle_function(board: Board, idx: int):

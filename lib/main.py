@@ -1,6 +1,6 @@
 import random
 from lib.game import Game, Move, Player
-from src.agent import DelphiPlayer
+from src.agent import Agent
 
 
 class RandomPlayer(Player):
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     g.print()
     print(f"Winner: Player {winner}")
 
-    player = DelphiPlayer()
+    player = Agent()
     all_weights = []
     for _ in range(5):
         g.play(player, player1)

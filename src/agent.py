@@ -5,7 +5,7 @@ from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
 from typing import Literal
 
-class DelphiPlayer(Player):
+class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
         super().__init__()
         self.__oracle = Oracle(weights = oracle_weights)
@@ -33,7 +33,7 @@ class DelphiPlayer(Player):
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
         return alpha
-    
+
     def compute_score(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
         """wrapper for multithreading the min function"""
         return self.__min(board, current_player, alpha, curr_depth)
@@ -149,4 +149,4 @@ class DelphiPlayer(Player):
     @staticmethod
     def from_json(json_string: str):
         oracle = Oracle.from_json(json_string)
-        return DelphiPlayer(oracle.weights)
+        return Agent(oracle.weights)

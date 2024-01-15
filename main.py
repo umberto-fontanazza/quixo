@@ -1,11 +1,11 @@
 from lib.game import Game
-from src.agent import DelphiPlayer
+from src.agent import Agent
 from src.simple_agents import CleverPlayer
 
 
 def main():
     game = Game()
-    agent = DelphiPlayer(tree_depth = 2)
+    agent = Agent(tree_depth = 2)
     opponent = CleverPlayer()
     winner = game.play(agent, opponent)
     print(f'{winner =}')

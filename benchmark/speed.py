@@ -1,6 +1,6 @@
 from cProfile import Profile
 from pstats import Stats
-from src.agent import DelphiPlayer
+from src.agent import Agent
 from lib.game import Game, Player
 from lib.main import RandomPlayer
 from src.simple_agents import CleverPlayer
@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 def play_game():
     opponent = CleverPlayer()
-    oracle_player = DelphiPlayer(tree_depth=2)
+    oracle_player = Agent(tree_depth=2)
     N_GAMES = 100
     players = [oracle_player, opponent]
     starting = 0

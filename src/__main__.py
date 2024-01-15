@@ -1,7 +1,7 @@
 from src.position import Position
 from lib.game import Game, Move
 from src.simple_agents import BetterRandomPlayer, CleverPlayer, ManualPlayer
-from src.agent import DelphiPlayer
+from src.agent import Agent
 from time import time
 
 def main():
@@ -30,7 +30,7 @@ def main():
     print('clever v random:', wins, losses, '\n')
 
     opponent = CleverPlayer()
-    oracle_player = DelphiPlayer()                       # keep weights learned before
+    oracle_player = Agent()                       # keep weights learned before
     for depth in range(1, 5):                            # try some different depths, from 1 to 5
         t_0 = time()
         oracle_player.depth_limit = depth
