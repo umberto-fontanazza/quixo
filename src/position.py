@@ -4,6 +4,7 @@ from src.symmetry import Symmetry
 from typing import Literal, Iterable
 from itertools import product
 from dataclasses import dataclass
+from functools import cache
 
 @dataclass(frozen=True)
 class Position():
@@ -18,18 +19,20 @@ class Position():
         raise ValueError(f'{index =} not valid. Must be 0 or 1')
 
     def is_border(self) -> bool:
-        if self.axis_0 in (0, 4):
+        return self in BORDERS
+        """ if self.axis_0 in (0, 4):
             return True
         if self.axis_1 in (0, 4):
             return True
-        return False
+        return False """
 
     def is_corner(self) -> bool:
-        if self.axis_0 not in (0, 4):
+        return self in CORNERS
+        """         if self.axis_0 not in (0, 4):
             return False
         if self.axis_1 not in (0, 4):
             return False
-        return True
+        return True"""
 
     @property
     def slides(self) -> list[Move]:
@@ -45,6 +48,7 @@ class Position():
             slides.remove(Move.RIGHT)
         return slides
 
+    @cache
     def symmetric(self, axis: Symmetry) -> Position:
         if axis == Symmetry.HORIZONTAL:
             return Position(4 - self.axis_0, self.axis_1)
@@ -61,6 +65,7 @@ class Position():
         if axis == Symmetry.ROT270:
             return Position(self.axis_1, 4 - self.axis_0)
 
+    @cache
     def symmetrics(self, axes: Iterable[Symmetry]) -> set[Position]:
         """Returns a set containing self and its symmetrics"""
         return {self.symmetric(axis) for axis in axes} | {self}
@@ -68,7 +73,6 @@ class Position():
     def as_tuple(self):
         return (self.axis_0, self.axis_1)
 
-    # TODO: warning, it's bugged
     @staticmethod
     def filter_out_symmetrics(positions: Iterable[Position], axes: Iterable[Symmetry]) -> set[Position]:
         filtered_positions: set[Position] = set()
@@ -79,5 +83,7 @@ class Position():
             filtered_positions.add(position)
         return filtered_positions
 
-CORNERS: list[Position] = [Position(x, y) for x, y in product((0, 4), (0, 4))]
-BORDERS: list[Position] = [Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))] + [Position(x, y) for x, y in product((0, 4), (1, 2, 3))]
+CORNERS: set[Position] = {Position(x, y) for x, y in product((0, 4), (0, 4))}
+BORDERS: set[Position] = {Position(x, y) for x, y in product((0, 1, 2, 3, 4), (0, 4))} | {Position(x, y) for x, y in product((0, 4), (1, 2, 3))}
+CENTER: set[Position] = {Position(x, y) for x, y in product((1, 2, 3), (1, 2, 3))}
+ALL_POSITIONS: set[Position] = CENTER | BORDERS

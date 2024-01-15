@@ -44,20 +44,20 @@ def available_moves_majority(board: Board, player: PlayerID) -> float:
 
 def compact_board(board: Board, player: PlayerID) -> float:
     """counts the O close to others O and the X close to others X and returns a score"""
-    count_x = 0
-    count_o = 0
+    count_x, count_o = 0, 0
     arr = board.ndarray
     for pos in [(x, y) for x in range(5) for y in range(5)]:
-        if arr[pos] == 1:
-            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
-                if is_legal(pos1):
-                    if arr[pos1] == 1:
-                        count_x = count_x + 1
-        elif arr[pos] == 0:
-            for pos1 in [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]:
-                if is_legal(pos1):
-                    if arr[pos1] == 0:
-                        count_o  = count_o + 1
+        player = arr[pos]
+        if player not in (0, 1):
+            continue
+        adjacents = [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]
+        for adjacent in adjacents:
+            if is_legal(adjacent) and arr[adjacent] == player:
+                if player == 1:
+                    count_x += 1
+                elif player == 0:
+                    count_o += 1
+
     if count_o == 0 and count_x == 0:
         return 50
     if player == 'X' or player == 1:
