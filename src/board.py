@@ -5,6 +5,7 @@ from typing import Literal, Annotated
 from copy import deepcopy
 from numpy.typing import NDArray
 from src.symmetry import Symmetry
+from functools import lru_cache
 import numpy as np
 
 
@@ -20,6 +21,7 @@ class Board():
         return deepcopy(self.__board)
 
     @property
+    @lru_cache(maxsize = 2048)
     def symmetries(self) -> set[Symmetry]:
         matrix = self.__board
         _symmetries: set[Symmetry] = set()
@@ -54,6 +56,7 @@ class Board():
         b[b == -3] = 0
         return b
 
+    @lru_cache(maxsize = 2048)
     def list_moves(self, current_player: Literal[0, 1, 'O', 'X'], shuffle = True, filter_out_symmetrics = False) -> list[tuple[Position, Move]]:
         """returns all the possible moves given a Game object
             that is, a list of tuples (Position, Move)"""
@@ -98,6 +101,7 @@ class Board():
                 _winners.add(line[0])
         return _winners
 
+    @lru_cache(maxsize = 2048)
     def only_winner(self, player: PlayerID) -> bool:
         winners = self.check_winners()
         if len(winners) == 1 and player in winners:
