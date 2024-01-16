@@ -98,14 +98,24 @@ class Board():
                 if line[0] == -1:
                     continue
                 _winners.add(line[0])
+                if len(_winners) == 2:
+                    break
         return _winners
 
+    @property
+    def game_over(self):
+        return len(self.check_winners()) != 0
+
     @lru_cache(maxsize = 2048)
-    def only_winner(self, player: PlayerID) -> bool:
+    def winner(self, current_player: PlayerID) -> PlayerID | None:
+        """The opponent of @param{current_player} made the mode which produced this board"""
+        opponent = 0 if current_player in (1, 'X') else 1
         winners = self.check_winners()
-        if len(winners) == 1 and player in winners:
-            return True
-        return False
+        if current_player in winners:
+            return current_player
+        elif opponent in winners:
+            return opponent
+        return None
 
     def move(self, move: tuple[Position, Move], current_player: Literal[0, 1, 'X', 'O']) -> Board:
         """applies move to the board - out of place"""
