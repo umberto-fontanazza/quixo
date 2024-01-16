@@ -1,5 +1,7 @@
 from src.agent import Agent
 from src.board import Board
+from src.position import Position
+from test.example_boards import endgame_1
 from lib.game import Game, Move
 from unittest.mock import patch
 
@@ -22,3 +24,12 @@ def test_choose_move():
         assert result[0][1] >= 0 and result[0][1] <= 4
         assert result[1] in [Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT]
         assert result in board.list_moves('X')
+
+def test_trivial_choose_move():
+    agent = Agent()
+    agent.training = False
+    chosen_move = agent.choose_move(
+        board = endgame_1,
+        current_player = 'X',
+        use_multithreading = False)
+    assert chosen_move == (Position(4, 2), Move.TOP)

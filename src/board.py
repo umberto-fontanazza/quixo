@@ -63,10 +63,9 @@ class Board():
         current_player = 0 if current_player == 0 or current_player == 'O' else 1
         legal_moves = []
         board = self.__board
-        explorable_position = BORDERS if not filter_out_symmetrics else Position.filter_out_symmetrics(BORDERS, self.symmetries)
+        available_cells = {cell for cell in BORDERS if board[cell] == -1 or board[cell] == current_player}
+        explorable_position = available_cells if not filter_out_symmetrics else Position.filter_out_symmetrics(available_cells, self.symmetries)
         for position in explorable_position:
-            if board[position] != -1 and board[position] != current_player:
-                continue # it belongs to the opponent, ignore
             slides: list[Move] = position.slides
             pos_and_slides = [(position, slide) for slide in slides]
             legal_moves += pos_and_slides
@@ -113,7 +112,6 @@ class Board():
         current_player = 1 if current_player == 1 or current_player == 'X' else 0
         arr = self.ndarray
         position, _ = move
-        assert type(position) == Position
         arr[position] = current_player
         return Board(self.__slide(arr, move))
 
