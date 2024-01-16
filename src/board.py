@@ -103,10 +103,9 @@ class Board():
         return _winners
 
     @property
-    def game_over(self):
+    def game_over(self) -> bool:
         return len(self.check_winners()) != 0
 
-    @lru_cache(maxsize = 2048)
     def winner(self, current_player: PlayerID) -> PlayerID | None:
         """The opponent of @param{current_player} made the mode which produced this board"""
         opponent = 0 if current_player in (1, 'X') else 1

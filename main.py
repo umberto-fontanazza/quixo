@@ -5,16 +5,7 @@ from test.example_boards import endgame_1
 
 
 def main():
-    game = Game()
-    agent = Agent(tree_depth = 2)
-    opponent = CleverPlayer()
-    winner = game.play(agent, opponent)
-    print(f'{winner =}')
-    agent.save(filename = 'trash.json')
-    agent.training = False
-
-def main2():
-    agent = Agent()
+    agent = Agent(tree_depth=3)
     agent.training = False
     chosen_move = agent.choose_move(
         board = endgame_1,
