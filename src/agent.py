@@ -96,7 +96,7 @@ class Agent(Player):
 
     @depth_limit.setter
     def depth_limit(self, depth_limit: int) -> None:
-        if not isinstance(depth_limit, int) and depth_limit > 0:
+        if not isinstance(depth_limit, int) or depth_limit <= 0:
             raise ValueError(f'{type(depth_limit) =}, {depth_limit =}')
         self.__depth_limit = depth_limit
 
