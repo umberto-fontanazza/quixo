@@ -11,11 +11,7 @@ class Agent(Player):
         self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
         self.depth_limit = tree_depth
-        self.player_index: PlayerID = 1
         self.training = True
-        """         self.__previous_board_sum: int = -25
-        self.__last_game_player_index = -1
-        self.__last_chosen_future = None """
 
     def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
         #check if the board is a terminal condition
@@ -28,7 +24,7 @@ class Agent(Player):
         alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
         for board in future_boards:
-            tmp = self.__min(board, self.player_index, alpha, curr_depth + 1) # compute the min value for a board
+            tmp = self.__min(board, current_player, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
@@ -49,7 +45,7 @@ class Agent(Player):
         beta = 100.0                                                # largest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
         for board in future_boards:
-            tmp = self.__max(board, self.player_index, beta, curr_depth + 1)
+            tmp = self.__max(board, current_player, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
             beta = tmp if tmp < beta else beta                      # update beta with the smallest value found so far
@@ -57,16 +53,14 @@ class Agent(Player):
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
-        position, slide = self.choose_move(game, use_multithreading = False if self.__depth_limit <= 1 else True)
+        current_player = 1 if game.get_current_player() else 0
+        position, slide = self.choose_move(Board(game.get_board()), current_player, use_multithreading = False if self.__depth_limit <= 1 else True)
         position = position.as_tuple()
         position = (position[1], position[0])
         return position, slide
 
-    def choose_move(self, game: Game, use_multithreading: bool) -> tuple[Position, Move]:
+    def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
-        current_player: Literal[0, 1] = game.get_current_player() # type: ignore
-        self.player_index, opponent = current_player, 1 - current_player
-        board = Board(game.get_board())
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)
         future_boards = [board.move(move, current_player) for move in moves]
         if not use_multithreading:      # standard minmax
@@ -75,6 +69,7 @@ class Agent(Player):
             scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in future_boards)    #type: ignore
         chosen_move, next_board, _ = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
         if self.training:
+            opponent = 0 if current_player in (1,'X') else 1
             self.__train(board, next_board, current_player, opponent)
         return chosen_move
 
@@ -90,30 +85,6 @@ class Agent(Player):
         if any([next_board.move(move, opponent).only_winner(opponent) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
             self.oracle.feedback(self.__episode, current_player, 'Loss')
             self.__episode = []
-
-    """     def __is_winning_future(self, future_board: Board) -> bool:
-        player = self.__last_game_player_index
-        winners = future_board.check_winners()
-        return player in winners and len(winners) == 1
-
-    def __autotrain_oracle(self, board: Board, next_board: Board, move_score: float, move: tuple[Position, Move]) -> None:
-        self.__last_game_player_index = self.player_index if self.__last_game_player_index == -1 else self.__last_game_player_index
-        new_board_sum = board.ndarray.sum()
-        if new_board_sum > self.__previous_board_sum:       # exit if it is the normal course of events (match not ended)
-            self.__previous_board_sum = new_board_sum
-            self.__last_chosen_future = move, next_board, move_score
-            return
-        self.__previous_board_sum = new_board_sum
-        if not self.training:                             # clean up and exit if not in training mode
-            self.__episode = []
-            return
-        self.train_oracle(self.__last_game_player_index, 'Win' if self.__is_winning_future(self.__last_chosen_future[1]) else 'Loss')
-        self.__last_game_player_index = self.player_index   # update parameters
-        self.__last_chosen_future = move, next_board, move_score
-
-    def train_oracle(self, player: Literal[0, 1, 'O', 'X'], outcome: Outcome) -> None:
-        self.oracle.feedback(self.__episode, player, outcome)
-        self.__episode = [] """
 
     @property
     def oracle(self) -> Oracle:
