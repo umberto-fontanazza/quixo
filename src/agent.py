@@ -68,20 +68,21 @@ class Agent(Player):
             scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in future_boards)    #type: ignore
         chosen_move, next_board, _ = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
         if self.training:
-            opponent = 0 if current_player in (1,'X') else 1
-            self.__train(board, next_board, current_player, opponent)
+            self.__train(board, next_board, current_player)
         return chosen_move
 
-    def __train(self, board: Board, next_board: Board, current_player, opponent) -> None:
+    def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
+        """board = result of opponent move, next_board = board + my move"""
         if not board.is_empty and (not (len(self.__episode) == 0 and board.min_played_moves > 1)):
             self.__episode.append(board)
         if not (len(self.__episode) == 0 and board.min_played_moves > 2):
             self.__episode.append(next_board)
+        opponent = 0 if current_player in (1, 'X') else 1
         if next_board.only_winner(current_player):
             # leaving the last one out because it's a trivial prediction
             self.oracle.feedback(self.__episode[:-1], current_player, 'Win')
             self.__episode = []
-        if any([next_board.move(move, opponent).only_winner(opponent) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
+        elif any([next_board.move(move, opponent).only_winner(opponent) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
             self.oracle.feedback(self.__episode, current_player, 'Loss')
             self.__episode = []
 
