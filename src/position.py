@@ -7,16 +7,12 @@ from dataclasses import dataclass
 from functools import cache
 
 @dataclass(frozen=True)
-class Position():
+class Position(tuple):
     axis_0: Literal[0, 1, 2, 3, 4]
     axis_1: Literal[0, 1, 2, 3, 4]
 
-    def __getitem__(self, index: int):
-        if index == 0:
-            return self.axis_0
-        if index == 1:
-            return self.axis_1
-        raise ValueError(f'{index =} not valid. Must be 0 or 1')
+    def __new__ (cls, *args):
+        return super(Position, cls).__new__(cls, tuple(args))
 
     def is_border(self) -> bool:
         return self in BORDERS
@@ -68,9 +64,6 @@ class Position():
     def symmetrics(self, axes: Iterable[Symmetry]) -> set[Position]:
         """Returns a set containing self and its symmetrics"""
         return {self.symmetric(axis) for axis in axes} | {self}
-
-    def as_tuple(self):
-        return (self.axis_0, self.axis_1)
 
     @staticmethod
     def filter_out_symmetrics(positions: Iterable[Position], axes: Iterable[Symmetry]) -> set[Position]:

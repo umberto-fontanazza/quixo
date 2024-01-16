@@ -55,7 +55,6 @@ class Agent(Player):
         """Alias is required by lib"""
         current_player = 1 if game.get_current_player() else 0
         position, slide = self.choose_move(Board(game.get_board()), current_player, use_multithreading = False if self.__depth_limit <= 1 else True)
-        position = position.as_tuple()
         position = (position[1], position[0])
         return position, slide
 

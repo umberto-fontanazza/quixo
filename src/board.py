@@ -65,7 +65,7 @@ class Board():
         board = self.__board
         explorable_position = BORDERS if not filter_out_symmetrics else Position.filter_out_symmetrics(BORDERS, self.symmetries)
         for position in explorable_position:
-            if board[position.as_tuple()] != -1 and board[position.as_tuple()] != current_player:
+            if board[position] != -1 and board[position] != current_player:
                 continue # it belongs to the opponent, ignore
             slides: list[Move] = position.slides
             pos_and_slides = [(position, slide) for slide in slides]
@@ -81,10 +81,10 @@ class Board():
         o_moves_count, x_moves_count = 0, 0
         for position in BORDERS:
             slide_count = 2 if position.is_corner() else 3
-            if self.__board[position.as_tuple()] == -1:
+            if self.__board[position] == -1:
                 o_moves_count += slide_count
                 x_moves_count += slide_count
-            elif self.__board[position.as_tuple()] == 1:
+            elif self.__board[position] == 1:
                 x_moves_count += slide_count
             else:
                 o_moves_count += slide_count
@@ -114,13 +114,13 @@ class Board():
         arr = self.ndarray
         position, _ = move
         assert type(position) == Position
-        arr[position.as_tuple()] = current_player
+        arr[position] = current_player
         return Board(self.__slide(arr, move))
 
     @staticmethod
     def __slide(board: NDArray, move: tuple[Position, Move]) -> NDArray:
         position, slide = move
-        axis_0, axis_1 = position.as_tuple()
+        axis_0, axis_1 = position
         if slide == Move.RIGHT:
             board[axis_0, axis_1:] = np.roll(board[axis_0, axis_1:], -1)
         elif slide == Move.LEFT:
