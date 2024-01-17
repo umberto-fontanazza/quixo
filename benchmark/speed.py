@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 def play_game():
     opponent = CleverPlayer()
-    oracle_player = Agent(tree_depth=2)
+    oracle_player = Agent(depth_limit=2)
     N_GAMES = 100
     players = [oracle_player, opponent]
     starting = 0

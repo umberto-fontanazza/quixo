@@ -92,8 +92,7 @@ def main2():
     agent.training = False
     chosen_move = agent.choose_move(
         board = endgame_1,
-        current_player = 1,
-        use_multithreading = False)
+        current_player = 1)
     print(endgame_1.ndarray)
     print(chosen_move)
 

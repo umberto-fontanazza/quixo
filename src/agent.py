@@ -10,11 +10,11 @@ SCORE_VICTORY = 100
 SCORE_LOSS = 0
 
 class Agent(Player):
-    def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
+    def __init__(self, oracle_weights: list[float] | None = None, depth_limit: int = 4) -> None:
         super().__init__()
         self.__oracle = Oracle(weights = oracle_weights)
         self.__episode: list[Board] = []
-        self.depth_limit = tree_depth
+        self.depth_limit = depth_limit
         self.training = True
 
     def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
@@ -83,7 +83,7 @@ class Agent(Player):
     @staticmethod
     def use_for_training(choose_move_method) -> Callable:
         def wrapped(*args, **kwargs):
-            agent, board, player, _ = [*args, *kwargs.values()]
+            agent, board, player = [*args, *kwargs.values()][:3]
             chosen_move = choose_move_method(*args, **kwargs)
             next_board = board.move(chosen_move, player)
             agent.__train(board, next_board, player)
@@ -91,14 +91,14 @@ class Agent(Player):
         return wrapped
 
     @use_for_training
-    def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> CompleteMove:
+    def choose_move(self, board: Board, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
         """Choose and return a move, without applying it to the board"""
         moves: list[CompleteMove] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
         current_player, opponent = player_int(current_player), change_player(current_player)
         # checks if some moves give an instant win, filters moves that make the opponent win
         complex_moves: list[CompleteMove] = []
         for move in moves:
-            winner = board.move(current_player).winner(current_player = opponent)
+            winner = board.move(move, current_player).winner(current_player = opponent)
             if winner == current_player:
                 return move
             elif winner is None:
@@ -106,10 +106,12 @@ class Agent(Player):
         # if all moves make opponent win, choose a random one
         if len(complex_moves) == 0:
             return moves[0]
-        if not use_multithreading:      # standard minmax
-            scores: list[float] = [self.__min(board.move(move, current_player), current_player) for move in complex_moves]
-        else:                           # parallel minmax
+        if parallel:    # parallel minmax
+            # TODO: refactor. Since a wrapper is needed anyway move some jbolib complexity in the wrapper so this looks like
+            # scores = __parallel_minmax(board, complex_moves, current_player). Parallel minmax can use a local lambda as wrapper
             scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board.move(move, current_player), current_player) for move in complex_moves)    #type: ignore
+        else:           # sequential minmax
+            scores: list[float] = [self.__min(board.move(move, current_player), current_player) for move in complex_moves]
         chosen_move, _ = max(zip(complex_moves, scores), key = lambda tup: tup[1])
         return chosen_move
 

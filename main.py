@@ -5,12 +5,11 @@ from test.example_boards import endgame_1
 
 
 def main():
-    agent = Agent(tree_depth=3)
+    agent = Agent(depth_limit=3)
     agent.training = False
     chosen_move = agent.choose_move(
         board = endgame_1,
-        current_player = 'X',
-        use_multithreading = False)
+        current_player = 'X')
 
 if __name__ == '__main__':
     main()
