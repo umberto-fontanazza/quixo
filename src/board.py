@@ -10,6 +10,7 @@ from functools import lru_cache
 import numpy as np
 
 Outcome = Literal['Win', 'Loss']
+CompleteMove = tuple[Position, Move]
 
 class Board():
     def __init__(self, array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None):

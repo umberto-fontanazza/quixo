@@ -1,12 +1,13 @@
 from __future__ import annotations
 from src.oracle import Oracle
-from src.board import Board
+from src.board import Board, CompleteMove
 from src.player import PlayerID, change_player, player_int
-from src.position import Position
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
 from typing import Callable
 
+SCORE_VICTORY = 100
+SCORE_LOSS = 0
 
 class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -23,19 +24,19 @@ class Agent(Player):
             return self.oracle.advantage(board, current_player)
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
         # if some board is directly winnable by the agent, return maximum minmax value: 100
-        filtered_future_boards = []
+        complex_future_boards = []
         for future_board in future_boards:
             winners = future_board.check_winners()
             if current_player in winners and len(winners) == 1:
-                return 100
+                return SCORE_VICTORY
             if opponent not in winners:
-                filtered_future_boards.append(future_board)
+                complex_future_boards.append(future_board)
         # if all the boards are won by the opponent, return max = 0
-        if len(filtered_future_boards) == 0:
-            return 0
+        if len(complex_future_boards) == 0:
+            return SCORE_LOSS
         # go on with standard minimax
-        alpha = 0.0
-        for board in filtered_future_boards:
+        alpha = SCORE_LOSS
+        for board in complex_future_boards:
             tmp = self.__min(board, current_player, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
@@ -53,19 +54,19 @@ class Agent(Player):
             return self.oracle.advantage(board, current_player)
         future_boards: list[Board] = [board.move(move, opponent) for move in board.list_moves(opponent, shuffle=True, filter_out_symmetrics=True)]
         # if some board is winnable by opponent, return 0 (min value)
-        filtered_future_boards = []
+        complex_future_boards = []
         for future_board in future_boards:
             winners = future_board.check_winners()
             if opponent in winners and len(winners) == 1:
-                return 0
+                return SCORE_LOSS
             if current_player not in winners:
-                filtered_future_boards.append(future_board)
+                complex_future_boards.append(future_board)
         # if all the boards are won by the current player, return min = 100
-        if len(filtered_future_boards) == 0:
-            return 100
+        if len(complex_future_boards) == 0:
+            return SCORE_VICTORY
         #look for the other moves using minimax + pruning
-        beta = 100.0                                                # largest oracle value
-        for board in filtered_future_boards:
+        beta = SCORE_VICTORY                                        # largest oracle value
+        for board in complex_future_boards:
             tmp = self.__max(board, current_player, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
@@ -80,39 +81,36 @@ class Agent(Player):
         return position, slide
 
     @staticmethod
-    def use_for_training(method) -> Callable:
+    def use_for_training(choose_move_method) -> Callable:
         def wrapped(*args, **kwargs):
             agent, board, player, _ = [*args, *kwargs.values()]
-            move = method(*args, **kwargs)
-            next_board = board.move(move, player)
+            chosen_move = choose_move_method(*args, **kwargs)
+            next_board = board.move(chosen_move, player)
             agent.__train(board, next_board, player)
-            return move
+            return chosen_move
         return wrapped
 
     @use_for_training
-    def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> tuple[Position, Move]:
+    def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> CompleteMove:
         """Choose and return a move, without applying it to the board"""
-        moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
+        moves: list[CompleteMove] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
         current_player, opponent = player_int(current_player), change_player(current_player)
-        future_boards = [board.move(move, current_player) for move in moves]
         # checks if some moves give an instant win, filters moves that make the opponent win
-        filtered_future_boards = []
-        filtered_moves = []
-        for move, future_board in zip(moves, future_boards):
-            winner = future_board.winner(current_player = opponent)
+        complex_moves: list[CompleteMove] = []
+        for move in moves:
+            winner = board.move(current_player).winner(current_player = opponent)
             if winner == current_player:
                 return move
-            if winner is None:
-                filtered_future_boards.append(future_board)
-                filtered_moves.append(move)
+            elif winner is None:
+                complex_moves.append(move)
         # if all moves make opponent win, choose a random one
-        if len(filtered_moves) == 0:
+        if len(complex_moves) == 0:
             return moves[0]
         if not use_multithreading:      # standard minmax
-            scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
+            scores: list[float] = [self.__min(board.move(move, current_player), current_player) for move in complex_moves]
         else:                           # parallel minmax
-            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
-        chosen_move, _, __ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
+            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board.move(move, current_player), current_player) for move in complex_moves)    #type: ignore
+        chosen_move, _ = max(zip(complex_moves, scores), key = lambda tup: tup[1])
         return chosen_move
 
     def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
