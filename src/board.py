@@ -134,6 +134,7 @@ class Board():
             return opponent
         return None
 
+    @lru_cache(maxsize=2048)
     def move(self, move: tuple[Position, Move], current_player: Literal[0, 1, 'X', 'O']) -> Board:
         """applies move to the board - out of place"""
         current_player = 1 if current_player == 1 or current_player == 'X' else 0
