@@ -112,7 +112,7 @@ class Agent(Player):
             scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
         else:                           # parallel minmax
             scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
-        chosen_move, next_board, _ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
+        chosen_move, _, __ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
         return chosen_move
 
     def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
