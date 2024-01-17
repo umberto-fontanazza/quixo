@@ -123,7 +123,7 @@ class Board():
     def game_over(self) -> bool:
         return len(self.check_winners()) != 0
 
-    def winner(self, current_player: PlayerID) -> Literal[0, 1] | None:
+    def winner(self, *, current_player: PlayerID) -> Literal[0, 1] | None:
         """The opponent of @param{current_player} made the move which produced this board"""
         current_player = player_int(current_player)
         opponent = change_player(current_player)

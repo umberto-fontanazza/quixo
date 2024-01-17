@@ -84,7 +84,7 @@ class Agent(Player):
         filtered_future_boards = []
         filtered_moves = []
         for move, future_board in zip(moves, future_boards):
-            winner = future_board.winner(opponent)
+            winner = future_board.winner(current_player = opponent)
             if winner == current_player:
                 self.__train(board, future_board, current_player)
                 return move
@@ -112,11 +112,11 @@ class Agent(Player):
         if not (len(self.__episode) == 0 and board.min_played_moves > 2):
             self.__episode.append(next_board)
         opponent = 0 if current_player in (1, 'X') else 1
-        if next_board.winner(opponent):
+        if next_board.winner(current_player = opponent):
             # leaving the last one out because it's a trivial prediction
             self.oracle.feedback(self.__episode[:-1], current_player, 'Win')
             self.__episode = []
-        elif any([next_board.move(move, opponent).winner(current_player) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
+        elif any([next_board.move(move, opponent).winner(current_player = current_player) for move in next_board.list_moves(opponent, filter_out_symmetrics = True)]):
             self.oracle.feedback(self.__episode, current_player, 'Loss')
             self.__episode = []
 
