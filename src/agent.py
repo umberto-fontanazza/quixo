@@ -1,9 +1,8 @@
 from src.oracle import Oracle
-from src.board import Board, PlayerID
+from src.board import Board, PlayerID, change_player, player_int
 from src.position import Position
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
-from random import randint
 
 class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -79,24 +78,23 @@ class Agent(Player):
     def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
-        current_player = 1 if current_player in (1, 'X') else 0
+        current_player, opponent = player_int(current_player), change_player(current_player)
         future_boards = [board.move(move, current_player) for move in moves]
         # checks if some moves give an instant win, filters moves that make the opponent win
         winning_move_idx = -1
         filtered_future_boards = []
         filtered_moves = []
         for index, future_board in enumerate(future_boards):
-            winners = future_board.check_winners()
-            if len(winners) == 1:
-                if current_player in winners:
+            winner = future_board.winner(opponent)
+            if winner == current_player:
                     winning_move_idx = index
                     break
-            if len(winners) == 0:
+            if winner is None:
                 filtered_future_boards.append(future_board)
                 filtered_moves.append(moves[index])
         # if all moves make opponent win, choose a random one
         if len(filtered_moves) == 0:
-            winning_move_idx = randint(0, len(moves)-1)
+            winning_move_idx = 0
         if winning_move_idx == -1:          # no instant wins
             if not use_multithreading:      # standard minmax
                 scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]

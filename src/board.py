@@ -12,6 +12,23 @@ import numpy as np
 PlayerID = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
 
+def player_int(player: PlayerID) -> Literal[0, 1]:
+    if player in (1, 'X'):
+        return 1
+    elif player in (0, 'O'):
+        return 0
+    else:
+        raise ValueError(f'{player = } is not valid')
+
+def change_player(player: PlayerID) -> Literal[0, 1]:
+    """returns the other player"""
+    if player in (1, 'X'):
+        return 0
+    elif player in (0, 'O'):
+        return 1
+    else:
+        raise ValueError(f'{player = }is not valid')
+
 class Board():
     def __init__(self, array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None):
         self.__board = array if array is not None else np.full((5, 5), -1, dtype=np.int8)
@@ -106,9 +123,10 @@ class Board():
     def game_over(self) -> bool:
         return len(self.check_winners()) != 0
 
-    def winner(self, current_player: PlayerID) -> PlayerID | None:
+    def winner(self, current_player: PlayerID) -> Literal[0, 1] | None:
         """The opponent of @param{current_player} made the mode which produced this board"""
-        opponent = 0 if current_player in (1, 'X') else 1
+        current_player = player_int(current_player)
+        opponent = change_player(current_player)
         winners = self.check_winners()
         if current_player in winners:
             return current_player
