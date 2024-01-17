@@ -8,7 +8,6 @@ from src.symmetry import Symmetry
 from functools import lru_cache
 import numpy as np
 
-
 PlayerID = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
 
@@ -106,9 +105,10 @@ class Board():
     def game_over(self) -> bool:
         return len(self.check_winners()) != 0
 
-    def winner(self, current_player: PlayerID) -> PlayerID | None:
-        """The opponent of @param{current_player} made the mode which produced this board"""
-        opponent = 0 if current_player in (1, 'X') else 1
+    def winner(self, *, current_player: PlayerID) -> Literal[0, 1] | None:
+        """The opponent of @param{current_player} made the move which produced this board"""
+        current_player = player_int(current_player)
+        opponent = change_player(current_player)
         winners = self.check_winners()
         if current_player in winners:
             return current_player
@@ -116,6 +116,7 @@ class Board():
             return opponent
         return None
 
+    @lru_cache(maxsize=2048)
     def move(self, move: tuple[Position, Move], current_player: Literal[0, 1, 'X', 'O']) -> Board:
         """applies move to the board - out of place"""
         current_player = 1 if current_player == 1 or current_player == 'X' else 0
@@ -166,3 +167,20 @@ class Board():
     @property
     def min_played_moves(self) -> int:
         return (self.ndarray != Board().ndarray).sum()
+
+def player_int(player: PlayerID) -> Literal[0, 1]:
+    if player in (1, 'X'):
+        return 1
+    elif player in (0, 'O'):
+        return 0
+    else:
+        raise ValueError(f'{player = } is not valid')
+
+def change_player(player: PlayerID) -> Literal[0, 1]:
+    """returns the other player"""
+    if player in (1, 'X'):
+        return 0
+    elif player in (0, 'O'):
+        return 1
+    else:
+        raise ValueError(f'{player = }is not valid')
