@@ -23,7 +23,7 @@ def main():
     for _ in range(N_GAMES):
         g = Game()
         winner_idx = g.play(CleverPlayer(), BetterRandomPlayer())
-        if winner_idx == 1:
+        if winner_idx == 0:
             wins += 1
         else:
             losses+=1
@@ -31,7 +31,7 @@ def main():
 
     opponent = CleverPlayer()
     oracle_player = Agent()                       # keep weights learned before
-    for depth in range(1, 5):                            # try some different depths, from 1 to 5
+    for depth in range(1, 4):                            # try some different depths, from 1 to 5
         t_0 = time()
         oracle_player.depth_limit = depth
         #oracle_player.training = False
@@ -40,17 +40,17 @@ def main():
         starting = 0
         wins, losses = 0, 0
         for _ in range(N_GAMES):
-            print('+', end='')
             g = Game()
             winner_idx = g.play(players[starting], players[1-starting])
-            agent_won = winner_idx == 0 and starting == 0
+            agent_won = (winner_idx == starting)
+            print('+' if agent_won else '-', end='')
             if agent_won:
                 wins += 1
             else:
                 losses += 1
             starting = 1 -starting
         t_1 = int(time() - t_0)
-        unit = 'second(s)' if t_1 < 120 else 'minutes'
+        unit = 'seconds' if t_1 < 120 else 'minutes'
         print(f'\ndepth {depth}: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
 
     # match vs human
@@ -61,6 +61,17 @@ def main():
     print(g.play(human_player, oracle_player))
     human_player.print_pretty_board(g)
     """
+
+def main2():
+    from test.example_boards import endgame_1
+    agent = Agent()
+    agent.training = False
+    chosen_move = agent.choose_move(
+        board = endgame_1,
+        current_player = 1,
+        use_multithreading = False)
+    print(endgame_1.ndarray)
+    print(chosen_move)
 
 if __name__ == '__main__':
     main()

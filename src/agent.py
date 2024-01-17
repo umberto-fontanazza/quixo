@@ -3,7 +3,7 @@ from src.board import Board, PlayerID
 from src.position import Position
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
-from typing import Literal
+from random import randint
 
 class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -14,16 +14,25 @@ class Agent(Player):
         self.training = True
 
     def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
-        #check if the board is a terminal condition
-        value = board.check_for_terminal_conditions(current_player)
-        if value >= 0:
-            return value
-        #check if we are above the tree depth limit
+        opponent = 0 if current_player in (1, 'X') else 1
+        # if we are above the tree depth limit, return the oracle predictions
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
-        alpha = 0.0                                                 # smallest oracle value
         future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        for board in future_boards:
+        # if some board is directly winnable by the agent, return maximum minmax value: 100
+        filtered_future_boards = []
+        for future_board in future_boards:
+            winners = future_board.check_winners()
+            if current_player in winners and len(winners) == 1:
+                return 100
+            if opponent not in winners:
+                filtered_future_boards.append(future_board)
+        # if all the boards are won by the opponent, return max = 0
+        if len(filtered_future_boards) == 0:
+            return 0
+        # go on with standard minimax
+        alpha = 0.0
+        for board in filtered_future_boards:
             tmp = self.__min(board, current_player, alpha, curr_depth + 1) # compute the min value for a board
             if tmp > beta:
                 return tmp
@@ -35,16 +44,25 @@ class Agent(Player):
         return self.__min(board, current_player, alpha, curr_depth)
 
     def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
-        #check if the board is a terminal condition
-        value = board.check_for_terminal_conditions(current_player)
-        if value >= 0:
-            return value
-        #check if we are above the tree depth limit
+        opponent = 0 if current_player in (1, 'X') else 1
+        #if we are above the tree depth limit, return the prediction
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
+        future_boards: list[Board] = [board.move(move, opponent) for move in board.list_moves(opponent, shuffle=True, filter_out_symmetrics=True)]
+        # if some board is winnable by opponent, return 0 (min value)
+        filtered_future_boards = []
+        for future_board in future_boards:
+            winners = future_board.check_winners()
+            if opponent in winners and len(winners) == 1:
+                return 0
+            if current_player not in winners:
+                filtered_future_boards.append(future_board)
+        # if all the boards are won by the current player, return min = 100
+        if len(filtered_future_boards) == 0:
+            return 100
+        #look for the other moves using minimax + pruning
         beta = 100.0                                                # largest oracle value
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        for board in future_boards:
+        for board in filtered_future_boards:
             tmp = self.__max(board, current_player, beta, curr_depth + 1)
             if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
                 return tmp
@@ -53,20 +71,41 @@ class Agent(Player):
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
-        current_player = 1 if game.get_current_player() else 0
+        current_player = 1 if game.get_current_player() in (1, 'X') else 0
         position, slide = self.choose_move(Board(game.get_board()), current_player, use_multithreading = False if self.__depth_limit <= 1 else True)
         position = (position[1], position[0])
         return position, slide
 
     def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
-        moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)
+        moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
+        current_player = 1 if current_player in (1, 'X') else 0
         future_boards = [board.move(move, current_player) for move in moves]
-        if not use_multithreading:      # standard minmax
-            scores: list[float] = [self.__min(board, current_player) for board in future_boards]
+        # checks if some moves give an instant win, filters moves that make the opponent win
+        winning_move_idx = -1
+        filtered_future_boards = []
+        filtered_moves = []
+        for index, future_board in enumerate(future_boards):
+            winners = future_board.check_winners()
+            if len(winners) == 1:
+                if current_player in winners:
+                    winning_move_idx = index
+                    break
+            if len(winners) == 0:
+                filtered_future_boards.append(future_board)
+                filtered_moves.append(moves[index])
+        # if all moves make opponent win, choose a random one
+        if len(filtered_moves) == 0:
+            winning_move_idx = randint(0, len(moves)-1)
+        if winning_move_idx == -1:          # no instant wins
+            if not use_multithreading:      # standard minmax
+                scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
+            else:                           # parallel minmax
+                scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
+            chosen_move, next_board, _ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
         else:
-            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in future_boards)    #type: ignore
-        chosen_move, next_board, _ = max(zip(moves, future_boards, scores), key = lambda triplet: triplet[2])
+            chosen_move = moves[winning_move_idx]
+            next_board = future_boards[winning_move_idx]
         if self.training:
             self.__train(board, next_board, current_player)
         return chosen_move
