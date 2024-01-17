@@ -13,7 +13,7 @@ class Agent(Player):
         self.training = True
 
     def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
-        opponent = 0 if current_player in (1, 'X') else 1
+        opponent = change_player(current_player)
         # if we are above the tree depth limit, return the oracle predictions
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
@@ -43,7 +43,7 @@ class Agent(Player):
         return self.__min(board, current_player, alpha, curr_depth)
 
     def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
-        opponent = 0 if current_player in (1, 'X') else 1
+        opponent = change_player(current_player)
         #if we are above the tree depth limit, return the prediction
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
