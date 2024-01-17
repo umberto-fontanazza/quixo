@@ -1,14 +1,14 @@
 from __future__ import annotations
 from lib.game import Move
 from src.position import Position, BORDERS
-from typing import Literal, Annotated
-from copy import deepcopy
-from numpy.typing import NDArray
 from src.symmetry import Symmetry
+from src.player import PlayerID, player_int, change_player
+from typing import Literal, Annotated
+from numpy.typing import NDArray
+from copy import deepcopy
 from functools import lru_cache
 import numpy as np
 
-PlayerID = Literal['X', 'O', 1, 0]
 Outcome = Literal['Win', 'Loss']
 
 class Board():
@@ -88,6 +88,7 @@ class Board():
                 o_moves_count += slide_count
         return (o_moves_count, x_moves_count)
 
+    @lru_cache(maxsize = 2048)
     def check_winners(self) -> set[PlayerID]:
         '''Check the winner.
         Returns the player IDs that have a winning row, column, or diagonal'''
@@ -105,6 +106,7 @@ class Board():
     def game_over(self) -> bool:
         return len(self.check_winners()) != 0
 
+    @lru_cache(maxsize = 2048)
     def winner(self, *, current_player: PlayerID) -> Literal[0, 1] | None:
         """The opponent of @param{current_player} made the move which produced this board"""
         current_player = player_int(current_player)
@@ -167,20 +169,3 @@ class Board():
     @property
     def min_played_moves(self) -> int:
         return (self.ndarray != Board().ndarray).sum()
-
-def player_int(player: PlayerID) -> Literal[0, 1]:
-    if player in (1, 'X'):
-        return 1
-    elif player in (0, 'O'):
-        return 0
-    else:
-        raise ValueError(f'{player = } is not valid')
-
-def change_player(player: PlayerID) -> Literal[0, 1]:
-    """returns the other player"""
-    if player in (1, 'X'):
-        return 0
-    elif player in (0, 'O'):
-        return 1
-    else:
-        raise ValueError(f'{player = }is not valid')

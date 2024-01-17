@@ -1,5 +1,6 @@
 from __future__ import annotations
-from src.board import Board, PlayerID, Outcome
+from src.board import Board, Outcome
+from src.player import PlayerID
 from src.advisor import Advisor, ALL_ADVISORS
 from json import dumps, loads
 

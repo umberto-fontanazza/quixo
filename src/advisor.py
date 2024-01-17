@@ -1,5 +1,6 @@
 from typing import Callable
-from src.board import Board, PlayerID
+from src.board import Board
+from src.player import PlayerID
 from numpy import trace, flip
 from functools import cache
 

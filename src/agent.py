@@ -1,6 +1,7 @@
 from __future__ import annotations
 from src.oracle import Oracle
-from src.board import Board, PlayerID, change_player, player_int
+from src.board import Board
+from src.player import PlayerID, change_player, player_int
 from src.position import Position
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
