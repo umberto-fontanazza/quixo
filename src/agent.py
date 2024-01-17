@@ -1,8 +1,11 @@
+from __future__ import annotations
 from src.oracle import Oracle
 from src.board import Board, PlayerID, change_player, player_int
 from src.position import Position
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
+from typing import Callable
+
 
 class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, tree_depth: int = 4) -> None:
@@ -75,6 +78,17 @@ class Agent(Player):
         position = (position[1], position[0])
         return position, slide
 
+    @staticmethod
+    def use_for_training(method) -> Callable:
+        def wrapped(*args, **kwargs):
+            agent, board, player, _ = [*args, *kwargs.values()]
+            move = method(*args, **kwargs)
+            next_board = board.move(move, player)
+            agent.__train(board, next_board, player)
+            return move
+        return wrapped
+
+    @use_for_training
     def choose_move(self, board: Board, current_player: PlayerID, use_multithreading: bool) -> tuple[Position, Move]:
         """Choose and return a move, without applying it to the board"""
         moves: list[tuple[Position, Move]] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
@@ -86,21 +100,18 @@ class Agent(Player):
         for move, future_board in zip(moves, future_boards):
             winner = future_board.winner(current_player = opponent)
             if winner == current_player:
-                self.__train(board, future_board, current_player)
                 return move
             if winner is None:
                 filtered_future_boards.append(future_board)
                 filtered_moves.append(move)
         # if all moves make opponent win, choose a random one
         if len(filtered_moves) == 0:
-            self.__train(board, future_boards[0], current_player)
             return moves[0]
         if not use_multithreading:      # standard minmax
             scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
         else:                           # parallel minmax
             scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
         chosen_move, next_board, _ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
-        self.__train(board, next_board, current_player)
         return chosen_move
 
     def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
