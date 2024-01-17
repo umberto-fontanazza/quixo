@@ -3,12 +3,6 @@ Execute terminal commands from the top level directory quixo.
 Testing: {pytest test}
 Speed evaluation: {python -m benchmark.speed}
 
-# WHO DOES WHAT
-
-Alby -> min max
-1berto -> oracle, advisors
-Ludo -> how to update rulez, [tests]
-
 
 # QUIXO AGENT
 
@@ -29,8 +23,7 @@ saving in the state just the border cells and the two diagonals makes the proble
 # TODO:
     - refactor agent.__train()
     - add oracle.save(), oracle.load(file)
-    - consider @cache for various classes (speedup)
     - kill repeated calculations for advisors
-    - multithreading?
     - separate rotations from symmetry axes
     - shut off rules with low incidence to speed up oracle predictions
+    - benchmark alternative implementations of Position.is_conrner() and Position.is_border()

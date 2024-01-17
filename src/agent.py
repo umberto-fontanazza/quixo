@@ -5,6 +5,7 @@ from src.player import PlayerID, change_player, player_int
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
 from typing import Callable
+from functools import wraps
 
 SCORE_VICTORY = 100
 SCORE_LOSS = 0
@@ -82,13 +83,14 @@ class Agent(Player):
 
     @staticmethod
     def use_for_training(choose_move_method) -> Callable:
-        def wrapped(*args, **kwargs):
+        @wraps(choose_move_method) # TODO: https://stackoverflow.com/questions/147816/preserving-signatures-of-decorated-functions fixes help() but Pylance is dumb
+        def wrapper(*args, **kwargs):
             agent, board, player = [*args, *kwargs.values()][:3]
             chosen_move = choose_move_method(*args, **kwargs)
             next_board = board.move(chosen_move, player)
             agent.__train(board, next_board, player)
             return chosen_move
-        return wrapped
+        return wrapper
 
     @use_for_training
     def choose_move(self, board: Board, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
@@ -123,7 +125,7 @@ class Agent(Player):
             self.__episode.append(board)
         if not (len(self.__episode) == 0 and board.min_played_moves > 2):
             self.__episode.append(next_board)
-        opponent = 0 if current_player in (1, 'X') else 1
+        opponent = change_player(current_player)
         if next_board.winner(current_player = opponent):
             # leaving the last one out because it's a trivial prediction
             self.oracle.feedback(self.__episode[:-1], current_player, 'Win')
