@@ -31,7 +31,7 @@ def main():
 
     opponent = CleverPlayer()
     oracle_player = Agent()                       # keep weights learned before
-    for depth in range(1, 4):                            # try some different depths, from 1 to 5
+    for depth in range(1, 4):                            # try some different depths, from 1 to 3
         t_0 = time()
         oracle_player.depth_limit = depth
         #oracle_player.training = False
@@ -52,6 +52,30 @@ def main():
         t_1 = int(time() - t_0)
         unit = 'seconds' if t_1 < 120 else 'minutes'
         print(f'\ndepth {depth}: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
+        oracle_player.to_json()
+
+    # use the learned weights to play at depth 4 without training anymore
+    t_0 = time()
+    players = [oracle_player, opponent]
+    oracle_player.training = False
+    oracle_player.depth_limit = 4
+    wins, losses = 0, 0
+    for _ in range(N_GAMES):
+        starting = 0
+        g = Game()
+        winner_idx = g.play(players[starting], players[1-starting])
+        agent_won = (winner_idx == starting)
+        print('+' if agent_won else '-', end='')
+        if agent_won:
+            wins += 1
+        else:
+            losses += 1
+        starting = 1 -starting
+    t_1 = int(time() - t_0)
+    unit = 'seconds' if t_1 < 120 else 'minutes'
+    print(f'\ndepth 4, learned weights: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
+
+    oracle_player.to_json()
 
     # match vs human
     """
