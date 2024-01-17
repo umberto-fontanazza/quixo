@@ -44,6 +44,7 @@ def line_majority(board: Board, player: PlayerID) -> float:
 def available_moves_majority(board: Board, player: PlayerID) -> float:
     return __rule_advantage(*board.count_moves(), player)
 
+# TODO: somehow makes the agent slow down a loooot
 def compact_board(board: Board, player: PlayerID) -> float:
     """counts the O close to others O and the X close to others X and returns a score"""
     count_x, count_o = 0, 0
@@ -90,8 +91,8 @@ def board_majority(board: Board, player: PlayerID) -> int:
 
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
-    # compact_board,
+    # compact_board,                # TODO: somehow makes the agent slow down a loooot
     available_moves_majority,
-    # board_majority,
-    # more_disturbing_pieces
+    board_majority,
+    more_disturbing_pieces
 ]
