@@ -81,35 +81,32 @@ class Agent(Player):
         current_player, opponent = player_int(current_player), change_player(current_player)
         future_boards = [board.move(move, current_player) for move in moves]
         # checks if some moves give an instant win, filters moves that make the opponent win
-        winning_move_idx = -1
         filtered_future_boards = []
         filtered_moves = []
-        for index, future_board in enumerate(future_boards):
+        for move, future_board in zip(moves, future_boards):
             winner = future_board.winner(opponent)
             if winner == current_player:
-                    winning_move_idx = index
-                    break
+                self.__train(board, future_board, current_player)
+                return move
             if winner is None:
                 filtered_future_boards.append(future_board)
-                filtered_moves.append(moves[index])
+                filtered_moves.append(move)
         # if all moves make opponent win, choose a random one
         if len(filtered_moves) == 0:
-            winning_move_idx = 0
-        if winning_move_idx == -1:          # no instant wins
-            if not use_multithreading:      # standard minmax
-                scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
-            else:                           # parallel minmax
-                scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
-            chosen_move, next_board, _ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
-        else:
-            chosen_move = moves[winning_move_idx]
-            next_board = future_boards[winning_move_idx]
-        if self.training:
-            self.__train(board, next_board, current_player)
+            self.__train(board, future_boards[0], current_player)
+            return moves[0]
+        if not use_multithreading:      # standard minmax
+            scores: list[float] = [self.__min(board, current_player) for board in filtered_future_boards]
+        else:                           # parallel minmax
+            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board, current_player) for board in filtered_future_boards)    #type: ignore
+        chosen_move, next_board, _ = max(zip(filtered_moves, filtered_future_boards, scores), key = lambda triplet: triplet[2])
+        self.__train(board, next_board, current_player)
         return chosen_move
 
     def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
         """board = result of opponent move, next_board = board + my move"""
+        if not self.training:
+            return
         if not board.is_empty and (not (len(self.__episode) == 0 and board.min_played_moves > 1)):
             self.__episode.append(board)
         if not (len(self.__episode) == 0 and board.min_played_moves > 2):
