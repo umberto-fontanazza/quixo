@@ -38,6 +38,7 @@ class Oracle():
             self.__adjust_rule_weights(board, player, outcome)
 
     def advantage(self, board: Board, player: PlayerID) -> float:
+        """Returns win likelihood for the @param{player}"""
         advisor_advantages: list[float] = [rule(board, player) for rule in self.__rules]
         total_score = 0
         for i, rule_score in enumerate(advisor_advantages):
