@@ -18,65 +18,55 @@ class Agent(Player):
         self.depth_limit = depth_limit
         self.training = True
 
-    def __easy_win_complex_boards(self, current_board: Board, current_player: PlayerID, opponent: PlayerID, minmax: Literal['min', 'max']) -> tuple[bool, list[Board]]:
-        """returns a tuple: 1st element is found an easy win, second is the filtered list"""
-        future_boards: list[Board] = [current_board.move(move, current_player if minmax == 'max' else opponent) for move in current_board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        complex_future_boards = []
-        for future_board in future_boards:
-            winners = future_board.check_winners()
-            if minmax == 'max':
-                if current_player in winners and len(winners) == 1:
-                    return True, []
-                if opponent not in winners:
-                    complex_future_boards.append(future_board)
-            elif minmax == 'min':
-                if opponent in winners and len(winners) == 1:
-                    return True, []
-                if current_player not in winners:
-                    complex_future_boards.append(future_board)
-        return False, complex_future_boards
+    def __easy_win_complex_boards_moves(self, current_board: Board, current_player: PlayerID, opponent: PlayerID, minmax: Literal['min', 'max']) -> tuple[bool, list[Board], list[CompleteMove]]:
+        """returns a tuple: 1st element is found an easy win, 2nd is the filtered board list, 3rd is filtered moves list"""
+        moves_player: PlayerID = current_player if minmax == 'max' else opponent                          # player that makes the move
+        moves_players_opponent: PlayerID = opponent if minmax == 'max' else current_player                # and his opponent
+        possible_moves: list[CompleteMove] = current_board.list_moves(moves_player, shuffle=True, filter_out_symmetrics=True)
+        future_boards: list[Board] = [current_board.move(move, moves_player) for move in possible_moves]
+        complex_future_boards: list[Board] = []
+        complex_moves: list[CompleteMove] = []
+        for future_board, move in zip(future_boards, possible_moves):
+            winners = future_board.check_winners()                      # TODO: Umbi sono abbastanza convinto che mi serva check_winners()
+            if moves_player in winners and len(winners) == 1:
+                return True, [future_board], [move]
+            if moves_players_opponent not in winners:
+                complex_future_boards.append(future_board)
+                complex_moves.append(move)
+        return False, complex_future_boards, complex_moves
 
-    def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
+    def __min_max(self, board: Board, current_player: PlayerID, minmax: Literal['min', 'max'], alpha: float = 0.0, beta: float = 100.0, curr_depth: int = 1) -> float:
         opponent = change_player(current_player)
         # if we are above the tree depth limit, return the oracle predictions
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
-        easy_win, complex_future_boards = self.__easy_win_complex_boards(board, current_player, opponent, 'max')
-        # if some board is directly winnable by the agent, return maximum
+        easy_win, complex_future_boards, _ = self.__easy_win_complex_boards_moves(board, current_player, opponent, minmax)
+        best_value = SCORE_LOSS if minmax == 'max' else SCORE_VICTORY       # used for early returns
+        # if some board is directly winnable, return the corresponding score: (100 - best_value)
         if easy_win:
-            return SCORE_VICTORY
-        # if all the boards are won by the opponent, return max = 0
+            return 100 - best_value
+        # if all the boards are won by the opponent, return max = 0 or min = 100 (best_value)
         if len(complex_future_boards) == 0:
-            return SCORE_LOSS
-        # go on with standard minimax
-        alpha = SCORE_LOSS
-        for board in complex_future_boards:
-            tmp = self.__min(board, current_player, alpha, curr_depth + 1) # compute the min value for a board
-            if tmp > beta:
-                return tmp
-            alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
-        return alpha
+            return best_value
+        # minimax with a/b pruning
+        for future_board in complex_future_boards:
+            if minmax == 'max':
+                tmp = self.__min_max(future_board, current_player, 'min', alpha, beta, curr_depth + 1)
+                best_value = max(best_value, tmp)
+                alpha = max(alpha, best_value)
+            else:
+                tmp = self.__min_max(future_board, current_player, 'max', alpha, beta, curr_depth + 1)
+                best_value = min(best_value, tmp)
+                beta = min(beta, best_value)
+            if beta <= alpha:                   # pruning
+                break
+        return best_value
 
-    def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
-        opponent = change_player(current_player)
-        #if we are above the tree depth limit, return the prediction
-        if curr_depth >= self.depth_limit:
-            return self.oracle.advantage(board, current_player)
-        easy_win, complex_future_boards = self.__easy_win_complex_boards(board, current_player, opponent, 'min')
-        # if some board is directly winnable by opponent, return minimum
-        if easy_win:
-            return SCORE_LOSS
-        # if all the boards are won by the current player, return min = 100
-        if len(complex_future_boards) == 0:
-            return SCORE_VICTORY
-        # look for the other moves using minimax + pruning
-        beta = SCORE_VICTORY                                        # largest oracle value
-        for board in complex_future_boards:
-            tmp = self.__max(board, current_player, beta, curr_depth + 1)
-            if tmp < alpha:                                         # if we find a value smaller than alpha we stop and we return this value
-                return tmp
-            beta = tmp if tmp < beta else beta                      # update beta with the smallest value found so far
-        return beta
+    def __parallel_minmax(self, board: Board, complex_moves: list[CompleteMove], current_player: PlayerID, minmax: Literal['min', 'max']) -> list[float]:
+        """minmax wrapper for multithreading"""
+        minmax_wrapper = lambda board, current_player, minmax, alpha, beta, curr_depth: self.__min_max(board, current_player, minmax, alpha, beta, curr_depth)
+        scores: list[float] = Parallel(n_jobs=-1)(delayed(minmax_wrapper)(board.move(move, current_player), current_player, 'min', 0.0, 100.0, 1) for move in complex_moves)      #type: ignore
+        return scores
 
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
@@ -96,32 +86,19 @@ class Agent(Player):
             return chosen_move
         return wrapper
 
-    def __parallel_minmax(self, board: Board, complex_moves: list[CompleteMove], current_player: PlayerID) -> list[float]:
-        """minmax with min wrapper for multithreading"""
-        min_wrapper = lambda board, current_player, alpha, curr_depth: self.__min(board, current_player, alpha, curr_depth)
-        scores: list[float] = Parallel(n_jobs=-1)(delayed(min_wrapper)(board.move(move, current_player), current_player, 0.0, 1) for move in complex_moves)      #type: ignore
-        return scores
-
     @use_for_training
     def choose_move(self, board: Board, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
         """Choose and return a move, without applying it to the board"""
-        moves: list[CompleteMove] =  board.list_moves(current_player, shuffle=True,  filter_out_symmetrics = True)
         current_player, opponent = player_int(current_player), change_player(current_player)
-        # checks if some moves give an instant win, filters moves that make the opponent win
-        complex_moves: list[CompleteMove] = []
-        for move in moves:
-            winner = board.move(move, current_player).winner(current_player = opponent)
-            if winner == current_player:
-                return move
-            elif winner is None:
-                complex_moves.append(move)
-        # if all moves make opponent win, choose a random one
-        if len(complex_moves) == 0:
-            return moves[0]
-        if parallel:    # parallel minmax
-            scores = self.__parallel_minmax(board, complex_moves, current_player)
-        else:           # sequential minmax
-            scores: list[float] = [self.__min(board.move(move, current_player), current_player) for move in complex_moves]
+        easy_win, _, complex_moves = self.__easy_win_complex_boards_moves(board, current_player, opponent, 'max')
+        if easy_win:                            # return the winning move you found
+            return complex_moves[0]
+        if len(complex_moves) == 0:             # return random move if the opponent wins in any case
+            return board.list_moves(current_player, shuffle=True, filter_out_symmetrics = True)[0]
+        if parallel:                            # parallel minmax
+            scores = self.__parallel_minmax(board, complex_moves, current_player, 'min')
+        else:                                   # sequential minmax
+            scores: list[float] = [self.__min_max(board.move(move, current_player), current_player, 'min') for move in complex_moves]
         chosen_move, _ = max(zip(complex_moves, scores), key = lambda tup: tup[1])
         return chosen_move
 
