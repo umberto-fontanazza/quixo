@@ -4,7 +4,7 @@ from src.board import Board, CompleteMove
 from src.player import PlayerID, change_player, player_int
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
-from typing import Callable
+from typing import Callable, Literal
 from functools import wraps
 
 SCORE_VICTORY = 100
@@ -18,20 +18,33 @@ class Agent(Player):
         self.depth_limit = depth_limit
         self.training = True
 
+    def __easy_win_complex_boards(self, current_board: Board, current_player: PlayerID, opponent: PlayerID, minmax: Literal['min', 'max']) -> tuple[bool, list[Board]]:
+        """returns a tuple: 1st element is found an easy win, second is the filtered list"""
+        future_boards: list[Board] = [current_board.move(move, current_player if minmax == 'max' else opponent) for move in current_board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
+        complex_future_boards = []
+        for future_board in future_boards:
+            winners = future_board.check_winners()
+            if minmax == 'max':
+                if current_player in winners and len(winners) == 1:
+                    return True, []
+                if opponent not in winners:
+                    complex_future_boards.append(future_board)
+            elif minmax == 'min':
+                if opponent in winners and len(winners) == 1:
+                    return True, []
+                if current_player not in winners:
+                    complex_future_boards.append(future_board)
+        return False, complex_future_boards
+
     def __max(self, board: Board, current_player: PlayerID, beta: float = 100.0, curr_depth: int = 0) -> float:
         opponent = change_player(current_player)
         # if we are above the tree depth limit, return the oracle predictions
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
-        future_boards: list[Board] = [board.move(move, current_player) for move in board.list_moves(current_player, shuffle=True, filter_out_symmetrics=True)]
-        # if some board is directly winnable by the agent, return maximum minmax value: 100
-        complex_future_boards = []
-        for future_board in future_boards:
-            winners = future_board.check_winners()
-            if current_player in winners and len(winners) == 1:
-                return SCORE_VICTORY
-            if opponent not in winners:
-                complex_future_boards.append(future_board)
+        easy_win, complex_future_boards = self.__easy_win_complex_boards(board, current_player, opponent, 'max')
+        # if some board is directly winnable by the agent, return maximum
+        if easy_win:
+            return SCORE_VICTORY
         # if all the boards are won by the opponent, return max = 0
         if len(complex_future_boards) == 0:
             return SCORE_LOSS
@@ -44,28 +57,19 @@ class Agent(Player):
             alpha = tmp if tmp > alpha else alpha                   # update alpha with the biggest value found so far
         return alpha
 
-    def compute_score(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
-        """wrapper for multithreading the min function"""
-        return self.__min(board, current_player, alpha, curr_depth)
-
     def __min(self, board: Board, current_player: PlayerID, alpha: float = 0.0, curr_depth: int = 1) -> float:
         opponent = change_player(current_player)
         #if we are above the tree depth limit, return the prediction
         if curr_depth >= self.depth_limit:
             return self.oracle.advantage(board, current_player)
-        future_boards: list[Board] = [board.move(move, opponent) for move in board.list_moves(opponent, shuffle=True, filter_out_symmetrics=True)]
-        # if some board is winnable by opponent, return 0 (min value)
-        complex_future_boards = []
-        for future_board in future_boards:
-            winners = future_board.check_winners()
-            if opponent in winners and len(winners) == 1:
-                return SCORE_LOSS
-            if current_player not in winners:
-                complex_future_boards.append(future_board)
+        easy_win, complex_future_boards = self.__easy_win_complex_boards(board, current_player, opponent, 'min')
+        # if some board is directly winnable by opponent, return minimum
+        if easy_win:
+            return SCORE_LOSS
         # if all the boards are won by the current player, return min = 100
         if len(complex_future_boards) == 0:
             return SCORE_VICTORY
-        #look for the other moves using minimax + pruning
+        # look for the other moves using minimax + pruning
         beta = SCORE_VICTORY                                        # largest oracle value
         for board in complex_future_boards:
             tmp = self.__max(board, current_player, beta, curr_depth + 1)
@@ -77,7 +81,7 @@ class Agent(Player):
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
         current_player = 1 if game.get_current_player() in (1, 'X') else 0
-        position, slide = self.choose_move(Board(game.get_board()), current_player, use_multithreading = False if self.__depth_limit <= 1 else True)
+        position, slide = self.choose_move(Board(game.get_board()), current_player, parallel = False if self.__depth_limit <= 1 else True)
         position = (position[1], position[0])
         return position, slide
 
@@ -91,6 +95,12 @@ class Agent(Player):
             agent.__train(board, next_board, player)
             return chosen_move
         return wrapper
+
+    def __parallel_minmax(self, board: Board, complex_moves: list[CompleteMove], current_player: PlayerID) -> list[float]:
+        """minmax with min wrapper for multithreading"""
+        min_wrapper = lambda board, current_player, alpha, curr_depth: self.__min(board, current_player, alpha, curr_depth)
+        scores: list[float] = Parallel(n_jobs=-1)(delayed(min_wrapper)(board.move(move, current_player), current_player, 0.0, 1) for move in complex_moves)      #type: ignore
+        return scores
 
     @use_for_training
     def choose_move(self, board: Board, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
@@ -109,9 +119,7 @@ class Agent(Player):
         if len(complex_moves) == 0:
             return moves[0]
         if parallel:    # parallel minmax
-            # TODO: refactor. Since a wrapper is needed anyway move some jbolib complexity in the wrapper so this looks like
-            # scores = __parallel_minmax(board, complex_moves, current_player). Parallel minmax can use a local lambda as wrapper
-            scores:list[float]  = Parallel(n_jobs=-1)(delayed(self.compute_score)(board.move(move, current_player), current_player) for move in complex_moves)    #type: ignore
+            scores = self.__parallel_minmax(board, complex_moves, current_player)
         else:           # sequential minmax
             scores: list[float] = [self.__min(board.move(move, current_player), current_player) for move in complex_moves]
         chosen_move, _ = max(zip(complex_moves, scores), key = lambda tup: tup[1])

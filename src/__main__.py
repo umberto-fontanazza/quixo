@@ -52,7 +52,7 @@ def main():
         t_1 = int(time() - t_0)
         unit = 'seconds' if t_1 < 120 else 'minutes'
         print(f'\ndepth {depth}: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
-        oracle_player.to_json()
+    oracle_player.to_json()
 
     # use the learned weights to play at depth 4 without training anymore
     t_0 = time()
