@@ -7,6 +7,7 @@ from typing import Literal, Annotated
 from numpy.typing import NDArray
 from copy import deepcopy
 from functools import lru_cache
+from src.board_stats import BoardStats
 import numpy as np
 
 Outcome = Literal['Win', 'Loss']
@@ -15,6 +16,14 @@ CompleteMove = tuple[Position, Move]
 class Board():
     def __init__(self, array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None):
         self.__board = array if array is not None else np.full((5, 5), -1, dtype=np.int8)
+        self.__stats: BoardStats | None = None
+
+    @property
+    def stats(self, parent_board = None, move = None, player = None) -> BoardStats:
+        """get the stats of the board, can also be computed """
+        if self.__stats is None:
+            self.__stats = BoardStats(self, parent_board, move)
+        return self.__stats
 
     @property
     def ndarray(self) -> NDArray[np.int8]:
