@@ -63,6 +63,24 @@ def compact_board(board: Board, player: PlayerID) -> float:
                     count_o += 1
     return __rule_advantage(count_o, count_x, player)
 
+def compact_board_version2(board: Board, player: PlayerID) -> float:
+    """counts the O close to others O and the X close to others X and returns a score
+        only takes into consideration the positions inside the board not the perimeter"""
+    count_x, count_o = 0, 0
+    arr = board.ndarray
+    for pos in [(x, y) for x in range(1,4) for y in range(1,4)]:
+        player = arr[pos]
+        if player not in (0, 1):
+            continue
+        adjacents = [(pos[0]-1,pos[1]-1),(pos[0]-1,pos[1]),(pos[0]-1,pos[1]+1),(pos[0]+1,pos[1]-1),(pos[0]+1,pos[1]),(pos[0]+1,pos[1]+1),(pos[0],pos[1]-1),(pos[0],pos[1]+1)]
+        for adjacent in adjacents:
+            if arr[adjacent] == player:
+                if player == 1:
+                    count_x += 1
+                elif player == 0:
+                    count_o += 1
+    return __rule_advantage(count_o, count_x, player)
+
 def more_disturbing_pieces(board: Board, player: PlayerID) -> float:
     """counts the O close to X and the X close to O and returns a score"""
     count_x = 0
