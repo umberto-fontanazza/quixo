@@ -7,7 +7,6 @@ from typing import Literal, Annotated
 from numpy.typing import NDArray
 from copy import deepcopy
 from functools import lru_cache
-from src.board_stats import BoardStats
 import numpy as np
 
 Outcome = Literal['Win', 'Loss']
@@ -179,3 +178,5 @@ class Board():
     @property
     def min_played_moves(self) -> int:
         return (self.ndarray != Board().ndarray).sum()
+#TODO import at the end of the file to solve circular import problem try to find a more elegant solution maybe
+from src.board_stats import BoardStats
