@@ -125,13 +125,18 @@ def board_majority(board: Board, player: PlayerID) -> float:
     count_x = 50 + total_count * 2
     return __rule_advantage(count_o, count_x, player)
 
+from random import randint
+def random_majority(board: Board, player: PlayerID) -> float:
+    """used to test oracle weights"""
+    return __rule_advantage(randint(0,100), randint(0, 100), player)
 
 ALL_ADVISORS: list[Advisor] = [
     line_majority,
     # compact_board,                # TODO: somehow makes the agent slow down a loooot
-    compact_board_version2,
+    # compact_board_version2,
     available_moves_majority,
     board_majority,
     #more_disturbing_pieces,
-    more_disturbing_pieces_version2
+    #more_disturbing_pieces_version2
+    random_majority
 ]

@@ -51,8 +51,8 @@ def main():
             starting = 1 -starting
         t_1 = int(time() - t_0)
         unit = 'seconds' if t_1 < 120 else 'minutes'
-        print(f'\ndepth {depth}: {wins} {losses}\t\t( in {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
-    oracle_player.to_json()
+        print(f'\ndepth {depth}: {wins} {losses}\t\t( {t_1 if t_1 < 120 else t_1 / 60} {unit} )\n')
+    oracle_player.save('../trash.json')
 
     # use the learned weights to play at depth 4 without training anymore
     t_0 = time()
@@ -78,13 +78,12 @@ def main():
     oracle_player.to_json()
 
     # match vs human
-    """
-    # oracle_player.depth_limit = 4
+    oracle_player.depth_limit = 4
     human_player = ManualPlayer()
     g = Game()
     print(g.play(human_player, oracle_player))
     human_player.print_pretty_board(g)
-    """
+
 
 def main2():
     from test.example_boards import endgame_1
