@@ -18,7 +18,7 @@ class CleverPlayer(Player):
         future_boards = [board.move(move, current_player) for move in moves]
         cooked_moves = []                                                       #will contain moves that do not make you lose
         for future_board, move in zip(future_boards, moves):
-            winner = future_board.winner(1 - current_player)
+            winner = future_board.winner(current_player = 1-current_player)
             if winner is None:
                 cooked_moves.append(move)
             elif winner == current_player:
