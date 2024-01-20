@@ -6,8 +6,9 @@ from lib.game import Move
 class BoardStats:
     def __init__(self,  board: Board, parent_board: Board | None = None, move: CompleteMove | None = None, player: PlayerID | None = None) -> None:
         # define stats that have to computed from scratch every time
-        self.x_available_moves = 0              # TODO: add more of these
-        self.o_available_moves = 0              # TODO: make these work
+        n_available_moves = board.count_moves()
+        self.x_available_moves = n_available_moves[1]              # TODO: add more of these
+        self.o_available_moves = n_available_moves[0]
 
         # define how to compute stats from a parent board
         if parent_board is not None and move is not None and player is not None:
@@ -28,9 +29,11 @@ class BoardStats:
 
 
     @property
-    def all_stats(self):
+    def all_stats(self) -> list[int]:
         """get all the stats of the board"""
         return [
             self.x_count,
-            self.o_count
+            self.o_count,
+            self.x_available_moves,
+            self.o_available_moves
         ]
