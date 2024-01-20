@@ -30,7 +30,7 @@ class Oracle():
             if success:
                 updated_weight = weight * (1 + growth_factor)
             else:
-                updated_weight = weight * (1 + shrink_factor)
+                updated_weight = weight * (1 - shrink_factor)
             updated_weights.append(updated_weight)
         self.__weights = updated_weights
 
@@ -44,7 +44,7 @@ class Oracle():
         total_score = 0
         for i, rule_score in enumerate(advisor_advantages):
             rule_weight = self.__weights[i]
-            total_score += rule_score *  rule_weight
+            total_score += rule_score * rule_weight
         return total_score / sum(self.__weights)
 
     def to_json(self) -> str:
