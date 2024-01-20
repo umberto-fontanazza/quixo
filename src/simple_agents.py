@@ -18,11 +18,11 @@ class CleverPlayer(Player):
         future_boards = [board.move(move, current_player) for move in moves]
         cooked_moves = []                                                       #will contain moves that do not make you lose
         for future_board, move in zip(future_boards, moves):
-            terminal_value = future_board.check_for_terminal_conditions(current_player)
-            if terminal_value == 100:
-                return ((move[0][1], move[0][0]), move[1])
-            elif terminal_value == -1:
+            winner = future_board.winner(1 - current_player)
+            if winner is None:
                 cooked_moves.append(move)
+            elif winner == current_player:
+                return ((move[0][1], move[0][0]), move[1])
         chosen_move = choice(cooked_moves) if len(cooked_moves) != 0 else choice(moves)
         return ((chosen_move[0][1], chosen_move[0][0]), chosen_move[1]) # type: ignore
 
