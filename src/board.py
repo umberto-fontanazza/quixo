@@ -15,14 +15,6 @@ CompleteMove = tuple[Position, Move]
 class Board():
     def __init__(self, array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None):
         self.__board = array if array is not None else np.full((5, 5), -1, dtype=np.int8)
-        self.__stats: BoardStats | None = None
-
-    @property
-    def stats(self, parent_board = None, move = None, player = None) -> BoardStats:
-        """get the stats of the board, can also be computed """
-        if self.__stats is None:
-            self.__stats = BoardStats(self, parent_board, move)
-        return self.__stats
 
     @property
     def ndarray(self) -> NDArray[np.int8]:
@@ -48,6 +40,9 @@ class Board():
         if np.array_equal(matrix, np.rot90(matrix, k=3)):
             _symmetries.add(Symmetry.ROT270)
         return _symmetries
+
+    def __getitem__(self, position: Position):
+        return int(self.__board[position.axis_0][position.axis_1])
 
     @staticmethod
     def random() -> Board:
@@ -164,19 +159,6 @@ class Board():
     def is_empty(self):
         return np.array_equal(self.ndarray, Board().ndarray)
 
-    def check_for_terminal_conditions(self, current_player: PlayerID) -> int:
-        """given a terminal state board, return a valid minmax value
-            if no one won, returns -1"""
-        winners: set[PlayerID] = self.check_winners()
-        opponent = 0 if current_player in (1, 'X') else 1
-        if opponent in winners:
-            return 0
-        if current_player in winners:
-            return 100
-        return -1
-
     @property
     def min_played_moves(self) -> int:
         return (self.ndarray != Board().ndarray).sum()
-#TODO import at the end of the file to solve circular import problem try to find a more elegant solution maybe
-from src.board_stats import BoardStats
