@@ -1,7 +1,7 @@
 from __future__ import annotations
 from lib.game import Move
 from src.board import Board, CompleteMove
-from src.position import Position, CORNERS
+from src.position import Position, CORNERS, BORDERS
 from typing import Annotated, Literal
 from numpy.typing import NDArray
 import numpy as np
@@ -28,6 +28,25 @@ class BoardStats(Board):
         self.corner_control = (o, x, 4)
 
 
+
+    # TODO: complete with all the stats
+    # TODO: test
+    # TODO: is this needed ?
+    # TODO: needs to be defined better
+    # @staticmethod
+    def __compute_all_stats(self) -> None:
+        """compute the stats from scratch but the one computed by __init__"""
+        array = self.ndarray
+        # compute available moves
+        self.o_am, self.x_am, self.neutral_am = 0, 0, 44
+        for position in BORDERS:
+            available_moves = 2 if position in CORNERS else 3
+            if array[position] == 0:
+                self.o_am += 1
+            elif array[position] == 1:
+                self.x_am += 1
+
+
     def move(self, move: CompleteMove, current_player: Literal[0, 1, 'X', 'O']) -> BoardStats:
         next_board: Board = super().move(move, current_player)
         position, slide = move
@@ -36,7 +55,7 @@ class BoardStats(Board):
         next_array: NDArray = next_board.ndarray
         parent_sliding_line = parent_array[:, position[1]] if vertical else parent_array[position[0], :]
         new_sliding_line = next_array[:, position[1]] if vertical else next_array[position[0], :]
-        slide_on_border = (vertical and position[1] in (0,4)) or (not vertical and position[0] in (1,4))
+        slide_on_border = (vertical and position[1] in (0,4)) or (not vertical and position[0] in (0,4))
         player_idx = 1 if current_player in ('X',1) else 0
         opponent = 1 - player_idx
 
@@ -50,42 +69,46 @@ class BoardStats(Board):
                 avail_moves_for_case = 3 if i in (0,4) else 0
             parent_line_am[parent_sliding_line[i]] += avail_moves_for_case
             new_line_am[new_sliding_line[i]] += avail_moves_for_case
-        for i in (1,2):                                         # add 'neutral' to x and o
+        for i in (0,1):                                         # add 'neutral' to x and o
             parent_line_am[i] += parent_line_am[-1]
-            new_line_am[i] += parent_line_am[-1]
+            new_line_am[i] += new_line_am[-1]
         o_am += new_line_am[0] - parent_line_am[0]
         x_am += new_line_am[1] - parent_line_am[1]
-        # neutral_am += new_line_am[-1] - parent_line_am[-1]
 
         # recompute center_control
         o_cc, x_cc, neutral_cc = self.center_control
         if not slide_on_border:                                 # slide on border -> no change to board centre
             parent_line_cc, new_line_cc = ([0]*3, [0]*3)        # [count_o, count_x, count_neut]
             for i in range(1,4):
-                parent_line_cc[parent_sliding_line[i] + 1] += 1
-                new_line_cc[new_sliding_line[i] + 1] += 1
-            for i in (1,2):                                     # add 'neutral' to x and o
+                parent_line_cc[parent_sliding_line[i]] += 1
+                new_line_cc[new_sliding_line[i]] += 1
+            for i in (0,1):                                     # add 'neutral' to x and o
                 parent_line_cc[i] += parent_line_cc[0]
                 new_line_cc[i] += new_line_cc[0]
             o_cc += new_line_cc[0] - parent_line_cc[0]
             x_cc += new_line_cc[1] - parent_line_cc[1]
-            # neutral_cc += new_line_cc[-1] - parent_line_cc[-1]
 
         # recompute count_pieces
         o_cp, x_cp, neutral_cp = self.count_pieces
         if parent_array[position] == -1:                        # if player did not take a blank piece -> skip
             o_cp += (1 if player_idx == 0 else 0)
             x_cp += (1 if player_idx == 1 else 0)
-            # neutral_cp -= 1
-
 
         return BoardStats(available_moves = (o_am , x_am, neutral_am),
                             center_control = (o_cc, x_cc, neutral_cc),
                             count_pieces = (o_cp, x_cp, neutral_cp),
                             array = next_array)
 
-    def all_stats(self) -> list:
-        """get all the stats of the board"""
+
+
+    @property
+    def all_stats(self) -> list[tuple[int, int, int]]:
+        """get all the stats of the board:
+        corner_control,
+        available_moves,
+        center_control,
+        count_pieces
+        """
         return [
             self.corner_control,
             self.available_moves,
