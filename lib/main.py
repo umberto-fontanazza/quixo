@@ -1,6 +1,5 @@
 import random
 from lib.game import Game, Move, Player
-from src.agent import Agent
 
 
 class RandomPlayer(Player):
@@ -23,24 +22,15 @@ class MyPlayer(Player):
         return from_pos, move
 
 
+from src.agent import Agent, GOOD_WEIGHTS
+
+
 if __name__ == '__main__':
     g = Game()
     g.print()
-    player1 = MyPlayer()
+    player1 = Agent(oracle_weights = GOOD_WEIGHTS, depth_limit = 4)              # precomputed weights
+    player1.training = False
     player2 = RandomPlayer()
     winner = g.play(player1, player2)
     g.print()
     print(f"Winner: Player {winner}")
-
-    player = Agent()
-    all_weights = []
-    for _ in range(5):
-        g.play(player, player1)
-        won = g.check_winner() == 1
-        player.train_oracle('Win' if won else 'Loss')
-        all_weights.append(player.__oracle.__weights)
-    for _ in range(5):
-        g.play(player1, player)
-        won = g.check_winner() == 0
-        player.train_oracle('Win' if won else 'Loss')
-        all_weights.append(player.__oracle.__weights)    
