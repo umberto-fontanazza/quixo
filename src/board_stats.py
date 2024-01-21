@@ -1,7 +1,7 @@
 from __future__ import annotations
 from lib.game import Move
 from src.board import Board, CompleteMove
-from src.position import Position, CORNERS, BORDERS
+from src.position import Position, CORNERS, BORDERS, CENTER, ALL_POSITIONS
 from typing import Annotated, Literal
 from numpy.typing import NDArray
 import numpy as np
@@ -11,7 +11,8 @@ class BoardStats(Board):
                  available_moves = (44, 44, 44),
                  center_control = (0, 0, 9),
                  count_pieces = (0, 0, 25),
-                 array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None):
+                 array: Annotated[NDArray[np.int8], Literal[5, 5]] | None = None,
+                 recompute: bool = True):
         super().__init__(array)
         # TODO: super().__init__.__args qualcosa... per non riscrivere gli argomenti, da vedere
         self.available_moves = available_moves
@@ -27,24 +28,42 @@ class BoardStats(Board):
                 x += 1
         self.corner_control = (o, x, 4)
 
+        # if the parent board / move is unknown, recompute
+        if recompute:
+            self.__recompute_all_stats()
 
 
-    # TODO: complete with all the stats
     # TODO: test
-    # TODO: is this needed ?
-    # TODO: needs to be defined better
-    # @staticmethod
-    def __compute_all_stats(self) -> None:
-        """compute the stats from scratch but the one computed by __init__"""
+    def __recompute_all_stats(self) -> None:
+        """compute the stats from scratch but the ones computed by __init__"""
         array = self.ndarray
         # compute available moves
-        self.o_am, self.x_am, self.neutral_am = 0, 0, 44
+        o_am, x_am = 0, 0
         for position in BORDERS:
             available_moves = 2 if position in CORNERS else 3
+            if array[position] in (0, -1):
+                o_am += available_moves
+            if array[position] in (1, -1):
+                x_am += available_moves
+        self.available_moves = (o_am, x_am, 44)
+
+        # compute center control
+        o_cc, x_cc = 0, 0
+        for position in CENTER:
             if array[position] == 0:
-                self.o_am += 1
+                o_cc += 1
             elif array[position] == 1:
-                self.x_am += 1
+                x_cc += 1
+        self.center_control = (o_cc, x_cc, 9)
+
+        # compute pieces count
+        o_cp, x_cp = 0, 0
+        for position in ALL_POSITIONS:
+            if array[position] == 0:
+                o_cp += 1
+            elif array[position] == 1:
+                x_cp += 1
+        self.count_pieces = (o_cp, x_cp, 25)
 
 
     def move(self, move: CompleteMove, current_player: Literal[0, 1, 'X', 'O']) -> BoardStats:
@@ -97,7 +116,8 @@ class BoardStats(Board):
         return BoardStats(available_moves = (o_am , x_am, neutral_am),
                             center_control = (o_cc, x_cc, neutral_cc),
                             count_pieces = (o_cp, x_cp, neutral_cp),
-                            array = next_array)
+                            array = next_array,
+                            recompute = False)
 
 
 

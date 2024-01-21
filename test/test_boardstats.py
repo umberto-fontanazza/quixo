@@ -1,10 +1,8 @@
 from lib.game import Move
 from src.board_stats import BoardStats
 from src.position import Position
-from test.example_boards import board_1, board_2, board_3, example_boards
-from itertools import product
+from test.example_boards import board_1, board_2
 from numpy import all, array
-from numpy.typing import NDArray
 
 def test_apply_move_type():
     move = Position(0, 3), Move.LEFT
@@ -42,3 +40,14 @@ def test_apply_move_stats():
         (0,0,9),
         (0,1,25)
     ]
+
+def test_recompute_stats():
+    b = BoardStats(array = board_2.ndarray)
+    stats = b.all_stats
+    print(b.ndarray)
+    assert stats == [
+        (1, 0, 4),
+        (26, 27, 44),
+        (1, 4, 9),
+        (7, 10, 25)
+        ]

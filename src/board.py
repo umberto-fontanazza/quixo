@@ -42,7 +42,7 @@ class Board():
         return _symmetries
 
     def __getitem__(self, position: Position):
-        return int(self.__board[position.axis_0][position.axis_1])
+        return int(self.__board[position.axis_0, position.axis_1])
 
     @staticmethod
     def random() -> Board:
