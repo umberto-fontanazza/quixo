@@ -1,5 +1,6 @@
 from src.agent import Agent
 from src.board import Board
+from src.board_stats import BoardStats
 from src.position import Position
 from test.example_boards import endgame_1
 from lib.game import Game, Move
@@ -9,7 +10,7 @@ def test_choose_move():
     player = Agent(depth_limit=2)
 
     # Define the mock function that will replace src.agent.Oracle.advantage
-    def mock_oracle_function(board: Board, idx: int):
+    def mock_oracle_function(board: BoardStats, idx: int):
         return 0
 
     #should return a valid move
@@ -18,7 +19,7 @@ def test_choose_move():
         g = Game()
         board = Board(g.get_board())
         current_player = 1 if g.get_current_player() else 0
-        result = player.choose_move(board, current_player, parallel = True)
+        result = player.choose_move(BoardStats(array = board.ndarray), current_player, parallel = True)
         board = Board(g.get_board())
         assert result[0][0] >= 0 and result[0][0] <= 4
         assert result[0][1] >= 0 and result[0][1] <= 4

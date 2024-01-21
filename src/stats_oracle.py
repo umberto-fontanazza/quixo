@@ -1,5 +1,5 @@
 from __future__ import annotations
-from src.board import Board, Outcome
+from src.board import Outcome
 from src.player import PlayerID
 from src.board_stats import BoardStats
 from json import dumps, loads
@@ -14,20 +14,23 @@ class StatsOracle():
 
     @staticmethod
     def __is_good_prediction(score: float, outcome: Outcome) -> bool:
-        if score >= 0 and outcome == 'Win':
+        if score >= 50 and outcome == 'Win':
             return True
-        if score < 0 and outcome == 'Loss':
+        if score < 50 and outcome == 'Loss':
             return True
         return False
 
+    def __compute_stats_scores(self, board_stats: BoardStats, player: PlayerID) -> list[float]:
+        """from the stats of the board returns some scores between 0 and 100"""
+        if player in ("X",1):
+            return [((stat[1] - stat[0]) / stat[2]) * 50 + 50 for stat in board_stats.all_stats]    #statX - statO
+        return [((stat[0] - stat[1]) / stat[2]) * 50 + 50 for stat in board_stats.all_stats]        #statO - statX
+
     def __adjust_rule_weights(self, board_stats: BoardStats, player: PlayerID, outcome: Outcome):
-        growth_factor = .1
-        shrink_factor = .1
-        if player in ["X",1]:
-            stats_scores: list[float] = [((stat[1] - stat[0])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statX - statO
-        else:
-            stats_scores: list[float] = [((stat[0] - stat[1])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statO - statX
-        stats_success = [self.__is_good_prediction(stat, outcome) for stat in stats_scores]
+        growth_factor = .001
+        shrink_factor = .001
+        stats_scores = self.__compute_stats_scores(board_stats, player)
+        stats_success = [self.__is_good_prediction(stat_score, outcome) for stat_score in stats_scores]
         updated_weights = []
         for success, weight in zip(stats_success, self.weights):
             if success:
@@ -43,14 +46,10 @@ class StatsOracle():
 
     def advantage(self, board_stats: BoardStats, player: PlayerID) -> float:
         """Returns win likelihood for the @param{player}"""
-        if player in ["X",1]:
-            stats_advantages: list[float] = [((stat[1] - stat[0])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statX - statO
-        else:
-            stats_advantages: list[float] = [((stat[0] - stat[1])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statO - statX
+        stats_scores = self.__compute_stats_scores(board_stats, player)
         total_score = 0
-        for i, stat_score in enumerate(stats_advantages):
-            stat_weight = self.__weights[i]
-            total_score += stat_score * stat_weight
+        for i, stat_score in enumerate(stats_scores):
+            total_score += stat_score * self.__weights[i]
         return total_score / sum(self.__weights)
 
     def to_json(self) -> str:

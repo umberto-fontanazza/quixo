@@ -1,6 +1,7 @@
 from __future__ import annotations
-from src.oracle import Oracle
-from src.board import Board, CompleteMove
+from src.stats_oracle import StatsOracle
+from src.board_stats import BoardStats
+from src.board import CompleteMove
 from src.player import PlayerID, change_player, player_int
 from lib.game import Game, Move, Player
 from joblib import Parallel, delayed
@@ -10,24 +11,27 @@ from functools import wraps
 SCORE_VICTORY = 100
 SCORE_LOSS = 0
 
+GOOD_WEIGHTS = [75.66562344604507, 6.235901212974498, 8.553351675764317, 35.104301950764615]
+
 class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, depth_limit: int = 4) -> None:
         super().__init__()
-        self.__oracle = Oracle(weights = oracle_weights)
-        self.__episode: list[Board] = []
+        # self.__oracle = Oracle(weights = oracle_weights)
+        self.__oracle: StatsOracle = StatsOracle(weights = oracle_weights)
+        self.__episode: list[BoardStats] = []
         self.depth_limit = depth_limit
         self.training = True
 
-    def __easy_win_complex_boards_moves(self, current_board: Board, current_player: PlayerID, opponent: PlayerID, minmax: Literal['min', 'max']) -> tuple[bool, list[Board], list[CompleteMove]]:
+    def __easy_win_complex_boards_moves(self, current_board: BoardStats, current_player: PlayerID, opponent: PlayerID, minmax: Literal['min', 'max']) -> tuple[bool, list[BoardStats], list[CompleteMove]]:
         """returns a tuple: 1st element is found an easy win, 2nd is the filtered board list, 3rd is filtered moves list"""
         moves_player: PlayerID = current_player if minmax == 'max' else opponent                          # player that makes the move
         moves_players_opponent: PlayerID = opponent if minmax == 'max' else current_player                # and his opponent
         possible_moves: list[CompleteMove] = current_board.list_moves(moves_player, shuffle=True, filter_out_symmetrics=True)
-        future_boards: list[Board] = [current_board.move(move, moves_player) for move in possible_moves]
-        complex_future_boards: list[Board] = []
+        future_boards: list[BoardStats] = [current_board.move(move, moves_player) for move in possible_moves]
+        complex_future_boards: list[BoardStats] = []
         complex_moves: list[CompleteMove] = []
         for future_board, move in zip(future_boards, possible_moves):
-            winners = future_board.check_winners()                      # TODO: Umbi sono abbastanza convinto che mi serva check_winners()
+            winners = future_board.check_winners()
             if moves_player in winners and len(winners) == 1:
                 return True, [future_board], [move]
             if moves_players_opponent not in winners:
@@ -35,7 +39,7 @@ class Agent(Player):
                 complex_moves.append(move)
         return False, complex_future_boards, complex_moves
 
-    def __min_max(self, board: Board, current_player: PlayerID, minmax: Literal['min', 'max'], alpha: float = 0.0, beta: float = 100.0, curr_depth: int = 1) -> float:
+    def __min_max(self, board: BoardStats, current_player: PlayerID, minmax: Literal['min', 'max'], alpha: float = 0.0, beta: float = 100.0, curr_depth: int = 1) -> float:
         opponent = change_player(current_player)
         # if we are above the tree depth limit, return the oracle predictions
         if curr_depth >= self.depth_limit:
@@ -62,7 +66,7 @@ class Agent(Player):
                 break
         return best_value
 
-    def __parallel_minmax(self, board: Board, complex_moves: list[CompleteMove], current_player: PlayerID, minmax: Literal['min', 'max']) -> list[float]:
+    def __parallel_minmax(self, board: BoardStats, complex_moves: list[CompleteMove], current_player: PlayerID, minmax: Literal['min', 'max']) -> list[float]:
         """minmax wrapper for multithreading"""
         minmax_wrapper = lambda board, current_player, minmax, alpha, beta, curr_depth: self.__min_max(board, current_player, minmax, alpha, beta, curr_depth)
         scores: list[float] = Parallel(n_jobs=-1)(delayed(minmax_wrapper)(board.move(move, current_player), current_player, 'min', 0.0, 100.0, 1) for move in complex_moves)      #type: ignore
@@ -71,7 +75,7 @@ class Agent(Player):
     def make_move(self, game: Game) -> tuple[tuple[int, int], Move]:
         """Alias is required by lib"""
         current_player = 1 if game.get_current_player() in (1, 'X') else 0
-        position, slide = self.choose_move(Board(game.get_board()), current_player, parallel = False if self.__depth_limit <= 1 else True)
+        position, slide = self.choose_move(BoardStats(array = game.get_board()), current_player, parallel = False if self.__depth_limit <= 1 else True)
         position = (position[1], position[0])
         return position, slide
 
@@ -87,7 +91,7 @@ class Agent(Player):
         return wrapper
 
     @use_for_training
-    def choose_move(self, board: Board, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
+    def choose_move(self, board: BoardStats, current_player: PlayerID, parallel: bool = False) -> CompleteMove:
         """Choose and return a move, without applying it to the board"""
         current_player, opponent = player_int(current_player), change_player(current_player)
         easy_win, _, complex_moves = self.__easy_win_complex_boards_moves(board, current_player, opponent, 'max')
@@ -102,7 +106,7 @@ class Agent(Player):
         chosen_move, _ = max(zip(complex_moves, scores), key = lambda tup: tup[1])
         return chosen_move
 
-    def __train(self, board: Board, next_board: Board, current_player: PlayerID) -> None:
+    def __train(self, board: BoardStats, next_board: BoardStats, current_player: PlayerID) -> None:
         """board = result of opponent move, next_board = board + my move"""
         if not self.training:
             return
@@ -120,7 +124,7 @@ class Agent(Player):
             self.__episode = []
 
     @property
-    def oracle(self) -> Oracle:
+    def oracle(self) -> StatsOracle:
         return self.__oracle
 
     @property
@@ -152,5 +156,5 @@ class Agent(Player):
 
     @staticmethod
     def from_json(json_string: str):
-        oracle = Oracle.from_json(json_string)
+        oracle = StatsOracle.from_json(json_string)
         return Agent(oracle.weights)
