@@ -2,6 +2,7 @@ from __future__ import annotations
 from src.board import Board, Outcome
 from src.player import PlayerID
 from src.advisor import Advisor, ALL_ADVISORS
+from src.board_stats import BoardStats
 from json import dumps, loads
 
 class Oracle():

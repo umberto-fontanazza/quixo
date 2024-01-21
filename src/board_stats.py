@@ -84,7 +84,6 @@ class BoardStats(Board):
                             count_pieces = (o_cp, x_cp, neutral_cp),
                             array = next_array)
 
-    @property
     def all_stats(self) -> list:
         """get all the stats of the board"""
         return [
