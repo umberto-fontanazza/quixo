@@ -6,8 +6,7 @@ from json import dumps, loads
 
 class StatsOracle():
     def __init__(self, weights: list[float] | None = None):
-        board_stats = BoardStats()
-        stats = board_stats.all_stats()
+        stats = BoardStats().all_stats
         if not weights or len(weights) != len(stats):
             self.__weights = [1 for _ in stats]
         else:
@@ -24,7 +23,7 @@ class StatsOracle():
     def __adjust_rule_weights(self, board_stats: BoardStats, player: PlayerID, outcome: Outcome):
         growth_factor = .1
         shrink_factor = .1
-        stats_scores: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats()] #statX - statO
+        stats_scores: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats] #statX - statO
         stats_success = [self.__is_good_prediction(stat, outcome) for stat in stats_scores]
         updated_weights = []
         for success, weight in zip(stats_success, self.weights):
@@ -41,8 +40,7 @@ class StatsOracle():
 
     def advantage(self, board_stats: BoardStats, player: PlayerID) -> float:
         """Returns win likelihood for the @param{player}"""
-        print("@@@@@",board_stats.all_stats())
-        stats_advantages: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats()] #statX - statO
+        stats_advantages: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats] #statX - statO
         total_score = 0
         for i, stat_score in enumerate(stats_advantages):
             stat_weight = self.__weights[i]
