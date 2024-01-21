@@ -23,7 +23,10 @@ class StatsOracle():
     def __adjust_rule_weights(self, board_stats: BoardStats, player: PlayerID, outcome: Outcome):
         growth_factor = .1
         shrink_factor = .1
-        stats_scores: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats] #statX - statO
+        if player in ["X",1]:
+            stats_scores: list[float] = [((stat[1] - stat[0])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statX - statO
+        else:
+            stats_scores: list[float] = [((stat[0] - stat[1])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statO - statX
         stats_success = [self.__is_good_prediction(stat, outcome) for stat in stats_scores]
         updated_weights = []
         for success, weight in zip(stats_success, self.weights):
@@ -40,7 +43,10 @@ class StatsOracle():
 
     def advantage(self, board_stats: BoardStats, player: PlayerID) -> float:
         """Returns win likelihood for the @param{player}"""
-        stats_advantages: list[float] = [stat[1] - stat[0] for stat in board_stats.all_stats] #statX - statO
+        if player in ["X",1]:
+            stats_advantages: list[float] = [((stat[1] - stat[0])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statX - statO
+        else:
+            stats_advantages: list[float] = [((stat[0] - stat[1])/stat[2])*50 + 50 for stat in board_stats.all_stats] #statO - statX
         total_score = 0
         for i, stat_score in enumerate(stats_advantages):
             stat_weight = self.__weights[i]
