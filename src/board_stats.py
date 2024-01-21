@@ -1,7 +1,7 @@
 from __future__ import annotations
 from lib.game import Move
 from src.board import Board, CompleteMove
-from src.position import Position, CORNERS
+from src.position import Position, CORNERS, BORDERS
 from typing import Annotated, Literal
 from numpy.typing import NDArray
 import numpy as np
@@ -30,22 +30,21 @@ class BoardStats(Board):
 
 
     # TODO: complete with all the stats
+    # TODO: test
     # TODO: is this needed ?
-    @staticmethod
-    def __compute_all_stats(array: NDArray) -> list[tuple[int, int, int]]:
-        """compute the stats from scratch"""
-        o, x = 0, 0
-        for corner in CORNERS:
-            if array[corner] == 0:
-                o += 1
-            elif array[corner] == 1:
-                x += 1
-        corner_control = (o, x, 4)
-
-        return [
-            corner_control
-        ]
-
+    # TODO: needs to be defined better
+    # @staticmethod
+    def __compute_all_stats(self) -> None:
+        """compute the stats from scratch but the one computed by __init__"""
+        array = self.ndarray
+        # compute available moves
+        self.o_am, self.x_am, self.neutral_am = 0, 0, 44
+        for position in BORDERS:
+            available_moves = 2 if position in CORNERS else 3
+            if array[position] == 0:
+                self.o_am += 1
+            elif array[position] == 1:
+                self.x_am += 1
 
 
     def move(self, move: CompleteMove, current_player: Literal[0, 1, 'X', 'O']) -> BoardStats:
@@ -59,7 +58,6 @@ class BoardStats(Board):
         slide_on_border = (vertical and position[1] in (0,4)) or (not vertical and position[0] in (0,4))
         player_idx = 1 if current_player in ('X',1) else 0
         opponent = 1 - player_idx
-
 
         # recompute available_moves
         o_am, x_am, neutral_am = self.available_moves
@@ -77,7 +75,6 @@ class BoardStats(Board):
         o_am += new_line_am[0] - parent_line_am[0]
         x_am += new_line_am[1] - parent_line_am[1]
 
-
         # recompute center_control
         o_cc, x_cc, neutral_cc = self.center_control
         if not slide_on_border:                                 # slide on border -> no change to board centre
@@ -91,13 +88,11 @@ class BoardStats(Board):
             o_cc += new_line_cc[0] - parent_line_cc[0]
             x_cc += new_line_cc[1] - parent_line_cc[1]
 
-
         # recompute count_pieces
         o_cp, x_cp, neutral_cp = self.count_pieces
         if parent_array[position] == -1:                        # if player did not take a blank piece -> skip
             o_cp += (1 if player_idx == 0 else 0)
             x_cp += (1 if player_idx == 1 else 0)
-
 
         return BoardStats(available_moves = (o_am , x_am, neutral_am),
                             center_control = (o_cc, x_cc, neutral_cc),
