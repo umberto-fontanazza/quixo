@@ -57,11 +57,15 @@ class ManualPlayer(Player):
             print(row, '\n')
 
     def choose_move(self, game: Game) -> tuple[tuple[int, int], Move]:
+        print()
         self.print_pretty_board(game)
         boardcopy = Board(game.get_board())
-        available_moves = boardcopy.list_moves(game.get_current_player(), filter_out_symmetrics=True) #type: ignore
+        player = game.get_current_player()
+        available_moves = boardcopy.list_moves(player, filter_out_symmetrics=True) #type: ignore
+        available_moves.sort(key = lambda m: m[0][0] * 100 + m[0][1] * 10 + m[1].value)
+        print('index n:\t(row, column) slide\nCurrently playing as', '0' if player == 0 else 'X')
         for index, move in enumerate(available_moves):
-            print('index', index, '->', move)
+            print(f"index {index}:\t({move[0][0]}, {move[0][1]}) {move[1]}")
         ok = False
         while not ok:
             move_index = int(input('choose a move index from the list: '))
