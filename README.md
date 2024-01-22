@@ -1,3 +1,10 @@
+# Quixo project
+Quixo project done by:
+Fiorio Ludovico s306058
+Fontanazza Umberto s... TODO add matricola
+Ricatto Alberto s... TODO add matricola
+For the 2024 winter session of the Computational Intelligence course exam
+
 # Manual
 Execute terminal commands from the top level directory quixo.
 Testing: {pytest test}
