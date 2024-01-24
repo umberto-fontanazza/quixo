@@ -1,8 +1,8 @@
 # Quixo project
 Quixo project done by:
 Fiorio Ludovico s306058
-Fontanazza Umberto s... TODO add matricola
-Ricatto Alberto s... TODO add matricola
+Fontanazza Umberto s323916
+Ricatto Alberto s309141
 For the 2024 winter session of the Computational Intelligence course exam
 
 # Manual
