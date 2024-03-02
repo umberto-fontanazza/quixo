@@ -1,5 +1,5 @@
 from __future__ import annotations
-from src.stats_oracle import StatsOracle
+from src.oracle_stats import StatsOracle
 from src.board_stats import BoardStats
 from src.board import CompleteMove
 from src.player import PlayerID, change_player, player_int

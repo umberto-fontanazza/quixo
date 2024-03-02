@@ -1,4 +1,4 @@
-from src.stats_oracle import StatsOracle
+from src.oracle_stats import StatsOracle
 from src.board_stats import BoardStats
 from test.example_boards import example_boards
 
