@@ -1,9 +1,9 @@
-from src.oracle_stats import StatsOracle
+from src.oracle_stats import OracleStats
 from src.board_stats import BoardStats
 from test.example_boards import example_boards
 
 def test_oracle_advantage_type_and_range():
-    s_o = StatsOracle()
+    s_o = OracleStats()
     player = 'X'
     for board in example_boards:
         stat_board = BoardStats(array=board.ndarray)

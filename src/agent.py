@@ -1,5 +1,5 @@
 from __future__ import annotations
-from src.oracle_stats import StatsOracle
+from src.oracle_stats import OracleStats
 from src.board_stats import BoardStats
 from src.board import CompleteMove
 from src.player import PlayerID, change_player, player_int
@@ -17,7 +17,7 @@ class Agent(Player):
     def __init__(self, oracle_weights: list[float] | None = None, depth_limit: int = 4) -> None:
         super().__init__()
         # self.__oracle = Oracle(weights = oracle_weights)
-        self.__oracle: StatsOracle = StatsOracle(weights = oracle_weights)
+        self.__oracle: OracleStats = OracleStats(weights = oracle_weights)
         self.__episode: list[BoardStats] = []
         self.depth_limit = depth_limit
         self.training = True
@@ -124,7 +124,7 @@ class Agent(Player):
             self.__episode = []
 
     @property
-    def oracle(self) -> StatsOracle:
+    def oracle(self) -> OracleStats:
         return self.__oracle
 
     @property
@@ -156,5 +156,5 @@ class Agent(Player):
 
     @staticmethod
     def from_json(json_string: str):
-        oracle = StatsOracle.from_json(json_string)
+        oracle = OracleStats.from_json(json_string)
         return Agent(oracle.weights)

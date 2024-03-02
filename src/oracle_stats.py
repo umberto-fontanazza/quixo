@@ -4,7 +4,7 @@ from src.player import PlayerID
 from src.board_stats import BoardStats
 from json import dumps, loads
 
-class StatsOracle():
+class OracleStats():
     def __init__(self, weights: list[float] | None = None):
         stats = BoardStats().all_stats
         if not weights or len(weights) != len(stats):
@@ -58,7 +58,7 @@ class StatsOracle():
     @staticmethod
     def from_json(json_string: str):
         data = loads(json_string)
-        return StatsOracle()
+        return OracleStats()
 
     @property
     def weights(self):
